@@ -13,8 +13,12 @@ public interface TaskManager {
     public Task getTaskById(Long taskId);
     public void deleteAllTasks();
     public void createTask(Task task);
+
+
     public void updateTask(Task task);
     public void deleteById(Long taskId);
+    public void viewTask(Task task);
+
 
     public void getEpicSubtasks(Long epicId);
 

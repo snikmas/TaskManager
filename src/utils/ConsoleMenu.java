@@ -11,7 +11,6 @@ import java.util.Scanner;
 
 public class ConsoleMenu {
 
-
     Scanner scanner = new Scanner(System.in);
     InMemoryTaskManager taskManager = new InMemoryTaskManager();
 
@@ -189,11 +188,29 @@ public class ConsoleMenu {
     }
 
     void updateTaskPreFunc(){
+        // firstly create a task and later push it
+        System.out.println("Enter Task ID to update:");
+        Long taskId = Long.valueOf(scanner.nextLine());
+        while(taskManager.getTaskById(taskId) == null){
+            System.out.println("Please enter a valid ID!");
+            taskId = Long.valueOf(scanner.nextLine());
+        }
+
+        Task task = taskManager.getTaskById(taskId);
+        taskManager.updateTask(task);
+
+        System.out.println("Updated!");
 
     }
 
     void findTask(){
-
+        System.out.println("Input Task ID:");
+        Long taskId = Long.valueOf(scanner.nextLine());
+        if(taskManager.getTaskById(taskId) == null){
+            System.out.println("Task does not exist!");
+        } else {
+            taskManager.viewTask(taskManager.getTaskById(taskId));
+        }
     }
 
     void viewTasks(){
@@ -203,15 +220,46 @@ public class ConsoleMenu {
     }
 
     void deleteTask(){
+        System.out.println("Enter Task ID to delete:");
+        Long taskId = Long.valueOf(scanner.nextLine());
+        if(taskManager.getTaskById(taskId) == null){
+            System.out.println("Task does not exist!");
+            taskId = Long.valueOf(scanner.nextLine());
+        }
 
+        taskManager.deleteById(taskId);
+        System.out.println("Task deleted!");
     }
 
     void deleteTasks(){
+        if(taskManager.getTasks().isEmpty()){
+            System.out.println("There are no tasks to delete!");
+            return;
+        }
+        System.out.println("Are you sure you want to delete all" + taskManager.getTasks().size() + "the tasks? [Y/N]");
+        String answer = scanner.nextLine();
 
+        while(!answer.equalsIgnoreCase("y") || !answer.equalsIgnoreCase("n")){
+            System.out.println("Please enter a valid option!");
+            answer = scanner.nextLine();
+        }
+        if(answer.equalsIgnoreCase("y")){
+            deleteTasks();
+            System.out.println("All tasks deleted!");
+        } else if(answer.equalsIgnoreCase("n")) {
+            System.out.println("The operation has been cancelled...");
+        }
     }
 
     void showEpicSubtasks(){
+        System.out.println("Input Epic Id");
+        Long epicId = Long.valueOf(scanner.nextLine());
+        while(taskManager.getTaskById(epicId) == null){
+            System.out.println("Task does not exist! Please enter a valid ID!");
+            epicId = Long.valueOf(scanner.nextLine());
+        }
 
+        taskManager.getEpicSubtasks(epicId);
     }
 
 
