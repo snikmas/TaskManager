@@ -6,8 +6,8 @@
         private String taskName;
         private String taskDesc;
         private Status taskStatus;
-
         private String taskType;
+
 
         public Task(Long taskId, String taskName, String taskDesc, Status taskStatus) {
             this.taskId = taskId;
@@ -38,6 +38,13 @@
 
         public void setTaskName(String taskName) {
             this.taskName = taskName;
+        }
+
+        public void setTaskType(String taskType) {
+            this.taskType = taskType;
+        }
+        public String getTaskType() {
+            return taskType;
         }
 
         public String getTaskDesc() {

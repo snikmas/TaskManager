@@ -18,12 +18,10 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void createTask(Task task){
 
-        // finish: add id
+        // finish
 
-        task.setTaskId(taskId);
-        tasks.put(taskId, task);
+        tasks.put(task.getTaskId(), task);
 
-        generatorTaskId();
 
         return;
     };
@@ -35,20 +33,19 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         for(Task task : tasks.values()){
-            System.out.println(task.toString());
+            System.out.println(task.toString() + "\n");
 
             if(task instanceof Subtask){
                 System.out.println("   Belongs to: " + tasks.get(((Subtask) task).getTaskId()).getTaskId());
-            } else if(task instanceof Epic){
-                Epic epic = (Epic) task;
-                if(epic.getSubtasks().size() == 0){
+            } else if(task instanceof Epic epic){
+                if(epic.getSubtasks().isEmpty()){
                     break;
                 }
                 System.out.println("Related Subtasks:");
                 for(int ii = 0; ii < epic.getSubtasks().size(); ii++){
                     Subtask subtask = epic.getSubtasks().get(ii);
-                    System.out.println((ii + 1) + ".   Task ID: " + subtask.getTaskId());
-                    System.out.println("   Task Name: " + subtask.getTaskName());
+                    System.out.println((ii + 1) + ".Task ID: " + subtask.getTaskId());
+                    System.out.println("   Task Name: " + subtask.getTaskName() + "\n");
                 }
             }
         }
@@ -98,8 +95,8 @@ public class InMemoryTaskManager implements TaskManager {
         this.tasks = tasks;
     }
 
-     private void generatorTaskId(){
-        taskId++;
+     public Long generatorTaskId(){
+        return taskId++;
     }
 
     // later neew to add such kind of functoins to the utils

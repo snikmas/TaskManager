@@ -17,7 +17,7 @@ public class ConsoleMenu {
 
 
     public void printMenu() {
-        System.out.println("==== Task Manager Menu ====");
+        System.out.println("\n==== Task Manager Menu ====");
         System.out.println("[1] Add Task");
         System.out.println("[2] Update Task");
         System.out.println("[3] Find Task by ID");
@@ -93,7 +93,7 @@ public class ConsoleMenu {
 
             try{
                 option = Integer.parseInt(userInput);
-                if(option < 0 || option > 3){
+                if(option < 1 || option > 3){
                     System.out.println("Invalid option");
                     continue;
                 } else if (option == 3 && !taskManager.epicAvailable()){
@@ -108,9 +108,18 @@ public class ConsoleMenu {
 
         Task newTask;
         switch (option){
-            case 1 -> newTask = new Task();
-            case 2 -> newTask = new Epic();
-            case 3 -> newTask = new Subtask();
+            case 1 -> {
+                newTask = new Task();
+                newTask.setTaskType("Task");
+            }
+            case 2 -> {
+                newTask = new Epic();
+                newTask.setTaskType("Epic");
+            }
+            case 3 -> {
+                newTask = new Subtask();
+                newTask.setTaskType("Subtasks");
+            }
             // otherwise next code won't want run
             default -> throw new IllegalArgumentException("Invalid option");
         }
@@ -120,29 +129,60 @@ public class ConsoleMenu {
         System.out.println("Task Description:");
         newTask.setTaskDesc(scanner.nextLine());
         newTask.setTaskStatus(Status.NEW);
+        newTask.setTaskId(taskManager.generatorTaskId());
+
+        taskManager.createTask(newTask);
 
         if(newTask instanceof Subtask){
             System.out.println("Epic's ID:");
 
             Long parentId = Long.valueOf(scanner.nextLine());
 
-            while (!taskManager.checkParentId(parentId)) {  // через объект
+            // later can change implementation: task becomes epics
+            while (!taskManager.checkParentId(parentId) || !taskManager.getTaskById(parentId).getTaskType().equals("Epic")) {  // через объект
                 System.out.println("Please enter a valid ID!");
                 parentId = Long.valueOf(scanner.nextLine());
             }
 
 
-            ((Subtask) newTask).setParentId(parentId);
-
             // maybe implement in the utils this funciotn?
             Task parentTask = taskManager.getTaskById(parentId);
+
+
+
+            ((Subtask) newTask).setParentId(parentId);
+
             if(parentTask.getTaskStatus() == Status.DONE){
                 parentTask.setTaskStatus(Status.IN_PROGRESS);
+            }
+        } else if(newTask instanceof Epic){
+            System.out.println("How many Subtasks would you like to add? (For one time, you can and 1-5 subtasks)");
+
+            int numberOfSubtasks = Integer.parseInt(scanner.nextLine());
+            while(numberOfSubtasks < 1 || numberOfSubtasks > 5){
+                System.out.println("Enter a valid number!");
+                numberOfSubtasks = Integer.parseInt(scanner.nextLine());
+            }
+
+            for(int i = 0; i < numberOfSubtasks; i++){
+                Subtask newSubtask = new Subtask();
+                System.out.println(i + 1 + ". Subtask Name:");
+                newSubtask.setTaskName(scanner.nextLine());
+                System.out.println("Subtask Description: ");
+                newSubtask.setTaskDesc(scanner.nextLine());
+                newSubtask.setTaskStatus(Status.NEW);
+                newSubtask.setParentId(newTask.getTaskId());
+                newSubtask.setTaskType("Subtask");
+                newSubtask.setTaskId(taskManager.generatorTaskId());
+                taskManager.createTask(newSubtask);
+
+                ((Epic)newTask).getSubtasks().add(newSubtask);
+                System.out.println("Subtask created!\n");
+
             }
         }
 
 
-        taskManager.createTask(newTask);
 
         System.out.println("Task Successfully created!");
 

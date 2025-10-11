@@ -6,10 +6,8 @@ import java.util.Map;
 
 public class Epic extends Task{
 
-    @Override
-    taskType = "EPIC"
-
     private List<Subtask> subtasks = new ArrayList<>();
+
 
 
     public List<Subtask> getSubtasks() {
