@@ -96,6 +96,9 @@ public class ConsoleMenu {
                 if(option < 0 || option > 3){
                     System.out.println("Invalid option");
                     continue;
+                } else if (option == 3 && !taskManager.epicAvailable()){
+                    System.out.println("Epics haven't been added yet! You can't create a Subtask now");
+                    continue;
                 }
                 break;
             } catch (NumberFormatException e) {
@@ -125,6 +128,7 @@ public class ConsoleMenu {
 
             while (!taskManager.checkParentId(parentId)) {  // через объект
                 System.out.println("Please enter a valid ID!");
+                parentId = Long.valueOf(scanner.nextLine());
             }
 
 
@@ -153,6 +157,8 @@ public class ConsoleMenu {
     }
 
     void viewTasks(){
+        System.out.println("All tasks:");
+        taskManager.viewAllTasks();
 
     }
 

@@ -12,6 +12,11 @@ public class Subtask extends Task {
 
     private Long parentId;
 
+    // subtasks can't be viewed separately
+//    @Override
+//    public String getType(Task task) {
+//        return "Subtask";
+//    }
 
 
 }
