@@ -6,26 +6,23 @@ import tasks.Subtask;
 import tasks.Task;
 import utils.Utilities;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
 
+    public Queue<Task> historyList = new ArrayDeque<>();
+
+    Long taskId = 1L;
     Scanner scanner = new Scanner(System.in);
     private Map<Long, Task> tasks = new HashMap<Long, Task>();
 
-    Long taskId = 1L;
+
 
 
     @Override
     public void createTask(Task task){
 
-        // finish
-
         tasks.put(task.getTaskId(), task);
-
-
         return;
     };
 
@@ -37,6 +34,7 @@ public class InMemoryTaskManager implements TaskManager {
 
         for(Task task : tasks.values()){
             System.out.println(task.toString() + "\n");
+            historyList.add(task);
 
             if(task instanceof Subtask){
                 System.out.println("   Belongs to: " + tasks.get(((Subtask) task).getTaskId()).getTaskId());
@@ -52,25 +50,26 @@ public class InMemoryTaskManager implements TaskManager {
                 }
             }
         }
-        return;
     };
 
     @Override
     public void deleteAllTasks(){
         tasks.clear();
-        return;
     };
 
-    @Override
+
+    // utility
     public Task getTaskById(Long taskId){
         return tasks.get(taskId);
-
     };
 
 
+    // actuall
+    @Override
     public void viewTask(Task task){
-
         System.out.println("Info:\n" + task.toString());
+        addHitstory(task);
+
     }
 
 
@@ -162,7 +161,6 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void deleteById(Long taskId){
         tasks.remove(taskId);
-
     };
 
     @Override
@@ -173,31 +171,19 @@ public class InMemoryTaskManager implements TaskManager {
             Epic task = (Epic) tasks.get(epicId);
             for(Subtask subtask : task.getSubtasks()){
                 System.out.println(subtask.toString() + '\n');
-
             }
         }
-        return;
     };
-
-    public Map<Long, Task> getTasks() {
-        return tasks;
-    }
 
     @Override
     public boolean checkParentId(Long parentId){
         return tasks.containsKey(parentId);
     }
 
-
-    public void setTasks(Map<Long, Task> tasks) {
-        this.tasks = tasks;
-    }
-
      public Long generatorTaskId(){
         return taskId++;
     }
 
-    // later neew to add such kind of functoins to the utils
     public boolean epicAvailable(){
         for(Task task : tasks.values()){
             if(task instanceof Epic){
@@ -206,7 +192,6 @@ public class InMemoryTaskManager implements TaskManager {
         }
         return false;
     }
-
 
     protected void checkEpicStatus(Long epicId){
         Epic epic = (Epic)tasks.get(epicId);
@@ -231,7 +216,6 @@ public class InMemoryTaskManager implements TaskManager {
             }
         }
 
-
         if(allDone) {
             epic.setTaskStatus(Status.DONE);
         } else if(allNew) {
@@ -239,8 +223,32 @@ public class InMemoryTaskManager implements TaskManager {
         } else {
             epic.setTaskStatus(Status.IN_PROGRESS);
         }
-
-
-
     }
+
+    @Override
+    public void history(){
+        System.out.println("History:");
+        for(Task task : tasks.values()){
+            System.out.println(task.toString() + "\n");
+        }
+    }
+
+    // util
+    public void addHitstory(Task task){
+        while(historyList.size() >= 10){
+            historyList.poll();
+        }
+        historyList.add(task);
+    }
+
+
+    public Map<Long, Task> getTasks() {
+        return tasks;
+    }
+    public void setTasks(Map<Long, Task> tasks) {
+        this.tasks = tasks;
+    }
+
+
+
 }

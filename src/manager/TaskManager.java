@@ -2,15 +2,16 @@ package manager;
 
 import tasks.Task;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public interface TaskManager {
 
+    public List<Task> historyList = new ArrayList<>();
     public boolean checkParentId(Long parentId);
 
     public void viewAllTasks();
-    public Task getTaskById(Long taskId);
     public void deleteAllTasks();
     public void createTask(Task task);
 
@@ -18,7 +19,7 @@ public interface TaskManager {
     public void updateTask(Task task);
     public void deleteById(Long taskId);
     public void viewTask(Task task);
-
+    public void history();
 
     public void getEpicSubtasks(Long epicId);
 

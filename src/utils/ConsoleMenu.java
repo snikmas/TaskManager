@@ -24,6 +24,7 @@ public class ConsoleMenu {
         System.out.println("[5] Delete Task By ID");
         System.out.println("[6] Delete All Tasks");
         System.out.println("[7] Get Epic's subtasks");
+        System.out.println("[8] View History");
         System.out.println("[0] Exit");
     }
 
@@ -68,6 +69,7 @@ public class ConsoleMenu {
                 case 5 -> deleteTask();
                 case 6 -> deleteTasks();
                 case 7 -> showEpicSubtasks();
+                case 8 -> viewHistory();
                 case 0 -> {
                     System.out.println("See you next time!");
                     running = false;
@@ -262,5 +264,8 @@ public class ConsoleMenu {
         taskManager.getEpicSubtasks(epicId);
     }
 
+    void viewHistory(){
+        taskManager.history();
+    }
 
 }
