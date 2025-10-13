@@ -19,7 +19,7 @@ public interface TaskManager {
     public void updateTask(Task task);
     public void deleteById(Long taskId);
     public void viewTask(Task task);
-    public void history();
+
 
     public void getEpicSubtasks(Long epicId);
 

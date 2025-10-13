@@ -10,14 +10,15 @@ import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
 
-    public Queue<Task> historyList = new ArrayDeque<>();
 
+    private final HistoryManager historyManager;
     Long taskId = 1L;
     Scanner scanner = new Scanner(System.in);
     private Map<Long, Task> tasks = new HashMap<Long, Task>();
-
-
-
+    
+    public InMemoryTaskManager(HistoryManager historyManager) {
+        this.historyManager = historyManager;
+    }
 
     @Override
     public void createTask(Task task){
@@ -34,10 +35,10 @@ public class InMemoryTaskManager implements TaskManager {
 
         for(Task task : tasks.values()){
             System.out.println(task.toString() + "\n");
-            historyList.add(task);
+            historyManager.add(task);
 
             if(task instanceof Subtask){
-                System.out.println("   Belongs to: " + tasks.get(((Subtask) task).getTaskId()).getTaskId());
+                System.out.println("   Belongs to: " + tasks.get(((Subtask) task).getParentId()));
             } else if(task instanceof Epic epic){
                 if(epic.getSubtasks().isEmpty()){
                     break;
@@ -68,7 +69,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void viewTask(Task task){
         System.out.println("Info:\n" + task.toString());
-        addHitstory(task);
+
 
     }
 
@@ -225,21 +226,6 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    @Override
-    public void history(){
-        System.out.println("History:");
-        for(Task task : tasks.values()){
-            System.out.println(task.toString() + "\n");
-        }
-    }
-
-    // util
-    public void addHitstory(Task task){
-        while(historyList.size() >= 10){
-            historyList.poll();
-        }
-        historyList.add(task);
-    }
 
 
     public Map<Long, Task> getTasks() {

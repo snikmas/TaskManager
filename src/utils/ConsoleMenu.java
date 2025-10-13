@@ -1,5 +1,6 @@
 package utils;
 
+import manager.InMemoryHistoryManager;
 import manager.InMemoryTaskManager;
 import manager.TaskManager;
 import tasks.Epic;
@@ -12,7 +13,8 @@ import java.util.Scanner;
 public class ConsoleMenu {
 
     Scanner scanner = new Scanner(System.in);
-    InMemoryTaskManager taskManager = new InMemoryTaskManager();
+    InMemoryHistoryManager historyManager = new InMemoryHistoryManager();
+    InMemoryTaskManager taskManager = new InMemoryTaskManager(historyManager);
 
 
     public void printMenu() {
@@ -41,7 +43,7 @@ public class ConsoleMenu {
 
                 try{
                     option = Integer.parseInt(userInput);
-                    if(option < 0 || option > 7){
+                    if(option < 0 || option > 8){
                         System.out.println("Invalid option");
                         continue;
                     }
@@ -212,6 +214,7 @@ public class ConsoleMenu {
             System.out.println("Task does not exist!");
         } else {
             taskManager.viewTask(taskManager.getTaskById(taskId));
+            historyManager.add(taskManager.getTaskById(taskId));
         }
     }
 
@@ -265,7 +268,7 @@ public class ConsoleMenu {
     }
 
     void viewHistory(){
-        taskManager.history();
+        historyManager.getHistory();
     }
 
 }
