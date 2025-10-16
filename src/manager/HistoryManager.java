@@ -12,5 +12,5 @@ public interface HistoryManager {
     // property tasks: viewed
     public void add(Task task);
     public void getHistory();
-
+    public void remove(long id);
 }
