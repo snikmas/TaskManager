@@ -2,109 +2,94 @@ package manager;
 
 import tasks.Task;
 
-import java.util.ArrayDeque;
 import java.util.HashMap;
-import java.util.Queue;
-// task: no duplicates in the history
 
 public class InMemoryHistoryManager implements HistoryManager {
 
-    static class ListNode{
+    // Doubly linked list node
+    private static class ListNode {
         Task task;
-        ListNode next;
         ListNode prev;
-        int index;
+        ListNode next;
 
-        ListNode(){};
-        ListNode(Task task){
+        ListNode(Task task) {
             this.task = task;
-            this.index = counterNodes++;
         }
     }
 
-
-    // util
-    static int counterNodes = 0;
-    private int size = 0;
+    private ListNode head;
+    private ListNode tail;
+    private final HashMap<Long, ListNode> nodeMap = new HashMap<>();
     private final int MAX_HISTORY_SIZE = 10;
+    private int size = 0;
 
-    public ListNode historyNodeStart = null;
-    public ListNode historyNodeEnd = null;
-
-    public final HashMap<Long, Integer> historyMap = new HashMap<Long, Integer>();
-
-    // for injection
     public InMemoryHistoryManager() {}
 
     @Override
-    public void add(Task task){
+    public void add(Task task) {
+        if (nodeMap.containsKey(task.getTaskId())) {
+            remove(task.getTaskId());
+        }
 
-        while (size >= MAX_HISTORY_SIZE) {
-            if (historyNodeStart != null) {
-                historyNodeStart = historyNodeStart.next;
-                if (historyNodeStart != null) {
-                    historyNodeStart.prev = null;
-                }
-            }
-            size--;
+        if (size >= MAX_HISTORY_SIZE) {
+            removeHead();
         }
 
         ListNode newNode = new ListNode(task);
-        historyMap.put(task.getTaskId(), newNode.index);
-
-
-        if(historyNodeStart == null){
-            historyNodeStart = newNode;
-            historyNodeEnd = newNode;
-
+        if (head == null) {
+            head = tail = newNode;
         } else {
-            historyNodeEnd.next = newNode;
-            newNode.prev = historyNodeEnd;
-            historyNodeEnd = newNode;
+            tail.next = newNode;
+            newNode.prev = tail;
+            tail = newNode;
         }
-        size++;
 
+        nodeMap.put(task.getTaskId(), newNode);
+        size++;
     }
 
     @Override
-    public void getHistory(){
-        if(historyList.isEmpty()){
+    public void remove(long taskId) {
+        ListNode node = nodeMap.remove(taskId);
+        if (node == null) return;
+
+        if (node.prev != null) node.prev.next = node.next;
+        else head = node.next;
+
+        if (node.next != null) node.next.prev = node.prev;
+        else tail = node.prev;
+
+        size--;
+    }
+
+    // Removes the oldest task (head)
+    private void removeHead() {
+        if (head == null) return;
+
+        nodeMap.remove(head.task.getTaskId());
+        head = head.next;
+        if (head != null) head.prev = null;
+        else tail = null;
+
+        size--;
+    }
+
+    @Override
+    public void getHistory() {
+        if (head == null) {
             System.out.println("There's no history yet!");
             return;
         }
 
         System.out.println("History:");
-
+        ListNode current = head;
         int i = 1;
-        for(Task task : historyList){
-            System.out.println(i + ". " + task.getTaskName() + " (" + task.getTaskType() + ")\n");
+        while (current != null) {
+            Task task = current.task;
+            System.out.println(i + ". " + task.getTaskName() + " (" + task.getTaskType() + ")");
+            current = current.next;
+            i++;
         }
     }
-
-    @Override
-    public void remove(long taskId) {
-        ListNode removeNode = historyNodeStart;
-
-        while (removeNode != null && removeNode.index != taskId) {
-            removeNode = removeNode.next;
-        }
-
-        if (removeNode == null) return; // not found
-
-        if (removeNode.prev != null) {
-            removeNode.prev.next = removeNode.next;
-        } else {
-            historyNodeStart = removeNode.next; // removing head
-        }
-
-        if (removeNode.next != null) {
-            removeNode.next.prev = removeNode.prev;
-        } else {
-            historyNodeEnd = removeNode.prev; // removing tail
-        }
-
-        System.out.println("Deleted Successfully");
-        // No need to set removeNode = null
-    }
-
 }
+
