@@ -1,5 +1,6 @@
 package utils;
 
+import manager.FileBackendTaskManager;
 import manager.InMemoryHistoryManager;
 import manager.InMemoryTaskManager;
 import manager.TaskManager;
@@ -28,6 +29,7 @@ public class ConsoleMenu {
         System.out.println("[7] Get Epic's subtasks");
         System.out.println("[8] View History");
         System.out.println("[0] Exit");
+        System.out.println("[9] CHECK NEW FUNCTION");
     }
 
 
@@ -43,7 +45,7 @@ public class ConsoleMenu {
 
                 try{
                     option = Integer.parseInt(userInput);
-                    if(option < 0 || option > 8){
+                    if(option < 0 || option > 9){
                         System.out.println("Invalid option");
                         continue;
                     }
@@ -72,6 +74,7 @@ public class ConsoleMenu {
                 case 6 -> deleteTasks();
                 case 7 -> showEpicSubtasks();
                 case 8 -> viewHistory();
+                case 9 -> newFunctionCheck();
                 case 0 -> {
                     System.out.println("See you next time!");
                     running = false;
@@ -80,6 +83,11 @@ public class ConsoleMenu {
 
 
         }
+    }
+
+    void newFunctionCheck(){
+        FileBackendTaskManager file = new FileBackendTaskManager(null);
+        file.save(null);
     }
 
 

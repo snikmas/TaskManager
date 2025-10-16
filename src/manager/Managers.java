@@ -6,8 +6,9 @@ public class Managers {
 
     static HistoryManager getDefaultHistory() {
         if (historyManager == null) {
-
+            return null;
         }
+        return historyManager;
     }
 
     TaskManager getDefault() {
