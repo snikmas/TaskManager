@@ -53,6 +53,7 @@ public class InMemoryTaskManager implements TaskManager {
                 System.out.println("Wrong ID! Try again!");
             } else {
                 // also has to check epic's status
+                Utils.changeEpicStatus(epics.get(epicId));
                 subtask.setParentId(epicId);
                 break;
             }

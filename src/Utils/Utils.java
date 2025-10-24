@@ -1,6 +1,7 @@
 package Utils;
 
 import Tasks.Epic;
+import Tasks.Status;
 import Tasks.Subtask;
 import Tasks.Task;
 
@@ -105,4 +106,9 @@ public abstract class Utils {
         return getInput(3, false);
     }
 
+    // later can add more functionality
+    public static void changeEpicStatus(Epic epic){
+        if(epic.getStatus() == Status.NEW) return;
+        epic.setStatus(Status.IN_PROGRESS);
+    }
 }
