@@ -8,7 +8,8 @@ import java.util.List;
 public interface HistoryManager {
     // only 2 methods
     void add(Task task);
-    void remove(Long id);
+    void delete(Long id);
+    void deleteAllTasks();
     List<Task> getHistory();
 
 }

@@ -169,7 +169,7 @@ public abstract class Utils {
         }
     }
 
-    public static void outputAllTasks(List<Subtask> allTasks) {
+    public static void outputAllTasks(List<Task> allTasks) {
         int counter = 1;
         for (Task task : allTasks) {
             System.out.println(counter + ". " + task.getTaskTitle());
@@ -177,7 +177,7 @@ public abstract class Utils {
         }
     }
 
-    public static void outputAllTasks(List<Subtask> allTasks){
+    public static void outputAllSubtasks(List<Subtask> allTasks){
         int counter = 1;
         for(Task task : allTasks){
             System.out.println(counter + ". " + task.getTaskTitle());

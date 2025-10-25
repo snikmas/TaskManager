@@ -87,6 +87,7 @@ public class Main {
 
                     Task task = taskManager.getTaskById(taskId);
                     System.out.println("Result:");
+                    historyManager.add(task);
 
                     if(task instanceof Subtask subtask){
                         Utils.outputTaskInfo(subtask);
@@ -102,6 +103,9 @@ public class Main {
                 case 4 -> {
                     System.out.println("All tasks:");
                     List<Task> allTasks = taskManager.getAllTasks();
+                    for(Task task : allTasks){
+                        historyManager.add(task);
+                    }
                     Utils.outputAllTasks(allTasks);
                 }
                 // get epuc's subtasks
@@ -116,16 +120,46 @@ public class Main {
                     }
                     Epic epic = (Epic) taskManager.getTaskById(taskId);
                     List<Subtask> result = taskManager.getEpicSubtasks(epic);
+                    for(Subtask subtask : result){
+                        historyManager.add(subtask);
+                    }
                     System.out.println("Result:");
-                    Utils.outputAllTasks(result);
-                    ;
+                    Utils.outputAllSubtasks(result);
 
                 }
+                // delete all
                 case 6 -> {
+                    System.out.println("Are you sure?");
+                    System.out.println("1. Yes");
+                    System.out.println("2. No");
+
+                    int userInput = Utils.getInput(2, false);
+                    if(userInput == 1){
+                        taskManager.deleteAllTasks();
+                        System.out.println("Tasks has been deleted.");
+                    }
+                    System.out.println("Back to the menu...");
+
+
                 }
+                // delete y id
                 case 7 -> {
+                    System.out.println("Input the task's id:");
+                    Long userInput = Utils.getLongInput();
+                    while(!taskManager.getAllTypesTasks().containsKey(userInput)){
+                        System.out.println("Invalid input! Try again...");
+                        userInput = Utils.getLongInput();
+                    }
+                    taskManager.deleteTaskById(userInput);
+                    historyManager.delete(userInput);
+                    System.out.println("The task has been deleted!");
                 }
+
+                // get history
                 case 8 -> {
+                    List<Task> history = taskManager.history();
+                    System.out.println("History:");
+                    Utils.outputAllTasks(history);
                 }
             }
 

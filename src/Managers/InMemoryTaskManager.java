@@ -17,7 +17,6 @@ import static Utils.Utils.updateProperty;
 public class InMemoryTaskManager implements TaskManager {
 
 
-
     private HashMap<Long, Task> allTypesTasks = new HashMap<>();
     private HashMap<Long, Task> tasks = new HashMap<>();
     private HashMap<Long, Subtask> subtasks = new HashMap<>();
@@ -178,9 +177,11 @@ public class InMemoryTaskManager implements TaskManager {
     // ========================================
     // ============ GETTING TASK =============
     public Task getTaskById(Long taskId) {
+//        Managers.getDefaultHistory().add(allTypesTasks.get(taskId)); NOT HERE
         if(epics.containsKey(taskId)) return epics.get(taskId);
         else if(tasks.containsKey(taskId)) return tasks.get(taskId);
         else if(subtasks.containsKey(taskId)) return subtasks.get(taskId);
+
 
         // shouldn't run
         return null;
@@ -192,14 +193,41 @@ public class InMemoryTaskManager implements TaskManager {
         return allTasks;
     }
 
-    public void deleteAllTasks() {
 
+    // =================================
+    // ======= DELETING ================
+    public void deleteAllTasks() {
+        allTypesTasks.clear();
+        epics.clear();
+        subtasks.clear();
+        tasks.clear();
     }
 
 
 
     // getEpic / getTask / getSubtask
     public void deleteTaskById(Long taskId) {
+
+        Task task = allTypesTasks.get(taskId);
+
+        if(task instanceof Epic epic){
+            List<Subtask> subtaskList = getEpicSubtasks(epic);
+            for(Subtask subtask : subtaskList){
+                Long subId = subtask.getTaskId();
+                allTypesTasks.remove(subId);
+                subtasks.remove(subId);
+            }
+
+            epics.remove(task.getTaskId());
+        } else if(task instanceof Subtask subtask){
+            // update epic?
+            subtasks.remove(subtask.getTaskId());
+            updateTask(epics.get(subtask.getParentId()));
+        } else {
+            tasks.remove(task.getTaskId());
+        }
+
+        allTypesTasks.remove(task.getTaskId());
 
     }
 
@@ -210,8 +238,9 @@ public class InMemoryTaskManager implements TaskManager {
     // returns last 10
     // create a list for hasBeenChecked tasks
     public List<Task> history() {
-        return null;
+        return Managers.getDefaultHistory().getHistory();
     }
+
 
 
     // ===================================
