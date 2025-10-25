@@ -57,6 +57,7 @@ public class InMemoryTaskManager implements TaskManager {
                 Utils.changeEpicStatus(epics.get(epicId));
                 updateTask(epics.get(epicId));
                 subtask.setParentId(epicId);
+                epics.get(epicId).getSubtaskList().add(subtask);
                 break;
             }
         }
@@ -102,39 +103,17 @@ public class InMemoryTaskManager implements TaskManager {
             case 2 -> {
                 System.out.println("New description:");
                 String description = Utils.getInput();
-                task.setTaskTitle(description);
+                task.setDescription(description);
             }
             case 3 -> {
                 System.out.println("New status:");
                 Status status = Utils.getStatus();
                 task.setStatus(status);
+                if(task instanceof Subtask subtask){
+                    updateTask(epics.get(subtask.getParentId()));
+                }
             }
         }
-    }
-
-    public void updateTask(Subtask subtask, Long taskId) {
-
-        int input = Utils.updateProperty("Task");
-        switch (input) {
-            case 1 -> {
-                System.out.println("New title:");
-                String title = Utils.getInput();
-                subtask.setTaskTitle(title);
-            }
-            case 2 -> {
-                System.out.println("New description:");
-                String description = Utils.getInput();
-                subtask.setTaskTitle(description);
-            }
-            case 3 -> {
-                System.out.println("New status:");
-                Status status = Utils.getStatus();
-                subtask.setStatus(status);
-                // check it's parent's subtasks..
-                updateTask(epics.get(subtask.getParentId()));
-            }
-        }
-
     }
 
     // update epic if its subtasks
@@ -209,6 +188,9 @@ public class InMemoryTaskManager implements TaskManager {
     public void deleteTaskById(Long taskId) {
 
         Task task = allTypesTasks.get(taskId);
+        if(task == null){
+            System.out.println("Task hasn't been found...");
+        }
 
         if(task instanceof Epic epic){
             List<Subtask> subtaskList = getEpicSubtasks(epic);

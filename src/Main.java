@@ -56,6 +56,7 @@ public class Main {
                     }
                 }
                 case 2 -> {
+                    System.out.println("Input a task ID:");
                     Long taskId = Utils.getLongInput();
                     while(true){
                         if(taskManager.getTasks().containsKey(taskId)){
@@ -65,7 +66,10 @@ public class Main {
                             taskManager.updateTask(taskManager.getSubtasks().get(taskId), taskId);
                             break;
                         } else if(taskManager.getEpics().containsKey(taskId)){
-                            taskManager.updateTask(taskManager.getSubtasks().get(taskId), taskId);
+                            Epic epic = (Epic) taskManager.getEpics().get(taskId);
+                            input = Utils.updateProperty("Epic"); // Only allows title or description
+                            if (input == 0) break; // User chose to exit
+                            taskManager.updateTask(epic, taskId);
                             break;
                         } else {
                             System.out.println("Task hasn't been found. Try again (0 to exit)");

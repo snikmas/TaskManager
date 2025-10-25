@@ -53,15 +53,13 @@ public abstract class Utils {
         }
     }
 
-    public static String getInput(){
-        String input = "";
-        while(true){
-            if(scanner.hasNextLine()){
-                return scanner.nextLine();
-            } else{
-                System.out.println("You have to input something!");
-            }
+    public static String getInput() {
+        String input = scanner.nextLine();
+        while (input.trim().isEmpty()) {
+            System.out.println("Input cannot be empty! Try again:");
+            input = scanner.nextLine();
         }
+        return input;
     }
 
     public static long getLongInput(){
@@ -151,28 +149,32 @@ public abstract class Utils {
     public static void outputTaskInfo(Task task){
 
         System.out.println("Task Info:");
-        System.out.println("TaskId: " + task.getTaskTitle());
-        System.out.println("Title: " + task.getTaskTitle());
-        System.out.println("Type: " + task.getClass().getSimpleName());
-        System.out.println("Description: " + task.getDescription());
-        System.out.println("Status: " + task.getStatus());
+        System.out.println("    TaskId: " + task.getTaskTitle());
+        System.out.println("    Title: " + task.getTaskTitle());
+        System.out.println("    Type: " + task.getClass().getSimpleName());
+        System.out.println("    Description: " + task.getDescription());
+        System.out.println("    Status: " + task.getStatus());
 
         if(task instanceof Epic){
             int counter = 1;
-            System.out.println("Subtasks:");
+            System.out.println("    Subtasks:");
             for(Subtask subtask : ((Epic) task).getSubtaskList()){
                 System.out.println(counter + ". " + subtask.getTaskTitle());
+                System.out.println("    Description: " + task.getDescription());
+                System.out.println("    Status: " + task.getStatus());
                 counter++;
             }
         } else if(task instanceof Subtask){
-            System.out.println("Belongs to: " + ((Subtask) task).getParentId());
+            System.out.println("    Belongs to: " + ((Subtask) task).getParentId());
         }
     }
 
     public static void outputAllTasks(List<Task> allTasks) {
         int counter = 1;
         for (Task task : allTasks) {
-            System.out.println(counter + ". " + task.getTaskTitle());
+            System.out.println(counter + ". ");
+            outputTaskInfo(task);
+            System.out.println("\n");
             counter++;
         }
     }
@@ -180,7 +182,9 @@ public abstract class Utils {
     public static void outputAllSubtasks(List<Subtask> allTasks){
         int counter = 1;
         for(Task task : allTasks){
-            System.out.println(counter + ". " + task.getTaskTitle());
+            System.out.println(counter + ". ");
+            outputTaskInfo(task);
+            System.out.println("\n");
             counter++;
         }
     }
