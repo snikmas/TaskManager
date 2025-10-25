@@ -18,24 +18,32 @@ import java.util.List;
 //        ". Save tasks",
 public interface TaskManager {
 
+    // 1.
     public List<Task> getAllTasks();
-    public void deleteAllTasks();
+    // 2.
+    public void updateTask(Task task, Long taskId);
+    // 3.
     public Task getTaskById(Long taskId);
     // getEpic / getTask / getSubtask
+    // 4.
+    public List<Subtask> getEpicSubtasks(Epic epic);
+    // 5.
+    public void deleteAllTasks();
+    // 6.
     public void deleteTaskById(Long taskId);
+    // 7.
+    public List<Task> history();
+    // 8. save tasks
 
-    // crete 3 hashmaps for tasks/subtasks/epic
+
+    // helpers
     public void createTask(Task task);
     public void createTask(Subtask subtask);
     public void createTask(Epic epic);
 
     // get an object that should completely replace the old: updateEpic/Subtask/Task epics.getId(), epic
-    public void updateTask(Task task, Long taskId);
-    public List<Subtask> getEpicSubtasks();
-
     // returns last 10
     // create a list for hasBeenChecked tasks
-    public List<Task> history();
 
 
     public HashMap<Long, Epic> getEpics();
@@ -44,4 +52,5 @@ public interface TaskManager {
 
     public HashMap<Long, Task> getTasks();
 
+    public HashMap<Long, Task> getAllTypesTasks();
 }
