@@ -11,6 +11,8 @@ import java.util.Map;
 public class InMemoryHistoryManager implements HistoryManager {
 
     private final int SIZE = 10;           // Максимальный размер истории
+
+
     private Map<Long, Node> historyMap = new HashMap<>();
     private Node head;
     private Node tail;
@@ -21,7 +23,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (historyMap.containsKey(task.getTaskId())) {
             removeNode(historyMap.get(task.getTaskId()));
         }
-        // Добавляем новую ноду в начало
+
         Node newNode = new Node(task);
         addNodeAtHead(newNode);
         historyMap.put(task.getTaskId(), newNode);
@@ -87,5 +89,14 @@ public class InMemoryHistoryManager implements HistoryManager {
         Node(Task task) {
             this.task = task;
         }
+    }
+
+
+    public Map<Long, Node> getHistoryMap() {
+        return historyMap;
+    }
+
+    public Node getHead() {
+        return head;
     }
 }

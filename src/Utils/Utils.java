@@ -201,7 +201,15 @@ public abstract class Utils {
                 return Status.DONE;
             }
         }
-
         return null;
+    }
+
+    public static boolean compareTasks(Task currentTask, Task fileTask) {
+        return (
+                currentTask.getTaskId() == fileTask.getTaskId())
+                && currentTask.getStatus() == fileTask.getStatus()
+                && currentTask.getTaskTitle().equals(fileTask.getTaskTitle())
+                && currentTask.getDescription().equals(fileTask.getDescription())
+                && currentTask.getClass().equals(fileTask.getClass());
     }
 }
