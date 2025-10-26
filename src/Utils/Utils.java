@@ -188,4 +188,20 @@ public abstract class Utils {
             counter++;
         }
     }
+
+    public static Status parseStatus(String status){
+        switch (status) {
+            case "NEW" -> {
+                return Status.NEW;
+            }
+            case "IN_PROGRESS" -> {
+                return Status.IN_PROGRESS;
+            }
+            case "DONE" -> {
+                return Status.DONE;
+            }
+        }
+
+        return null;
+    }
 }

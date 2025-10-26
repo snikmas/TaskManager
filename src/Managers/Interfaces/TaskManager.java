@@ -43,7 +43,7 @@ public interface TaskManager {
 
     // get an object that should completely replace the old: updateEpic/Subtask/Task epics.getId(), epic
     // returns last 10
-    // create a list for hasBeenChecked tasks
+    // create a list for hasBeenChecked tasks ?
 
 
     public HashMap<Long, Epic> getEpics();
