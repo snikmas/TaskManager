@@ -148,7 +148,7 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
                 while((line = bufferedReader.readLine()) != null) {
 
                     Task fileTask = fromCsvToTaskFormat(line);
-                    if (fileTask != null && count < currentHistory.size() - 1) {
+                    if (fileTask != null && count < currentHistory.size()) {
                         Task currentTask = currentHistory.get(count);
 
                         if (currentTask != null && !Utils.compareTasks(currentTask, fileTask)) {
@@ -157,13 +157,13 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
                             // got no tasks, rewrite the current line
                             bufferedWriterBuffer.write(line);
                         }
-                        count++;
                         bufferedWriterBuffer.newLine();
                     } else {
                         // if no history?
                         bufferedWriterBuffer.write(line);
                         bufferedWriterBuffer.newLine();
                     }
+                    count++;
                 }
 
             }
