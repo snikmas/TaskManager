@@ -72,6 +72,7 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
     HistoryManager historyManager = getDefaultHistory();
 
     // ADD MORE
+    // when it starts?
     public FileBackendTaskManager(){
 
         String pathString = System.getProperty("user.dir");
@@ -95,7 +96,7 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
             }
         }
 
-        // load current file.. and compare with the current?
+        // load current file.. ?
         load();
     }
     // fromat:
@@ -141,81 +142,94 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
 
     }
 
-    public void load(){
+    // IT WILL LOAD AS IT JUST STARTED WORK, SO NO NEED TO CHECK WITH CURRENT...
+    public void load() {
+        Map<Long, Task> allTypesTasks = getAllTypesTasks();
+        HistoryManager historyManager = getDefaultHistory();
 
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath.toFile()));
-            BufferedWriter bufferedWriterBuffer = new BufferedWriter(new FileWriter(fileBufferPath.toFile()))) {
-            // skip the 1st line
+        System.out.println("Loading from file: " + filePath.toAbsolutePath());
+        if (!Files.exists(filePath)) {
+            System.err.println("File does not exist: " + filePath);
+            return;
+        }
+
+        // Clear existing tasks and history
+        allTypesTasks.clear();
+        getTasks().clear();
+        getSubtasks().clear();
+        getEpics().clear();
+        historyManager.getHistory().clear();
+
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath.toFile()))) {
+            // Skip the header line
             String line = bufferedReader.readLine();
-            bufferedWriterBuffer.write(line);
-            bufferedWriterBuffer.newLine();
+            if (line == null || !line.equals(firstLine)) {
+                throw new RuntimeException("Invalid or missing header in file: " + filePath);
+            }
+            System.out.println("Header verified: " + line);
 
-            String[] data;
-
-            // better check history in the next
+            // Load tasks
+            int taskCount = 0;
             while ((line = bufferedReader.readLine()) != null && !line.equals("History:")) {
+                if (line.trim().isEmpty()) {
+                    System.out.println("Skipping empty task line");
+                    continue;
+                }
                 Task task = fromCsvToTaskFormat(line);
-
-                if (getAllTypesTasks().containsKey(task.getTaskId())) {
-                    Task taskToRewrite = getAllTypesTasks().get(task.getTaskId());
-                    bufferedWriterBuffer.write(toCsvFileFormat(taskToRewrite));
-                    bufferedWriterBuffer.newLine();
-
-                } else {
-                    // add a new task
-                    getAllTypesTasks().put(task.getTaskId(), task);
-                    if (task instanceof Task) getTasks().put(task.getTaskId(), (Task) task);
-                    else if (task instanceof Subtask) getSubtasks().put(task.getTaskId(), (Subtask) task);
-                    else if (task instanceof Epic) getEpics().put(task.getTaskId(), (Epic) task);
-
-                    // no problems
-                    // write buffer
-                    bufferedWriterBuffer.write(line);
-                    bufferedWriterBuffer.newLine();
+                if (task == null) {
+                    System.err.println("Skipping invalid task line: " + line);
+                    continue;
                 }
+
+                allTypesTasks.put(task.getTaskId(), task);
+                if (task instanceof Task && !(task instanceof Subtask || task instanceof Epic)) {
+                    getTasks().put(task.getTaskId(), (Task) task);
+                    System.out.println("Added Task: " + task.getTaskId());
+                } else if (task instanceof Subtask) {
+                    getSubtasks().put(task.getTaskId(), (Subtask) task);
+                    System.out.println("Added Subtask: " + task.getTaskId());
+                } else if (task instanceof Epic) {
+                    getEpics().put(task.getTaskId(), (Epic) task);
+                    System.out.println("Added Epic: " + task.getTaskId());
+                }
+                taskCount++;
             }
+            System.out.println("Loaded " + taskCount + " tasks");
 
-
-            // here we got history
-            if(line != null && line.equals("History:")){
-                bufferedWriterBuffer.write(line);
-                bufferedWriterBuffer.newLine();
-
-                List<Task> currentHistory = historyManager.getHistory();
-                int count = 0;
-
-                while((line = bufferedReader.readLine()) != null) {
-
-                    Task fileTask = fromCsvToTaskFormat(line);
-                    if (fileTask != null && count < currentHistory.size()) {
-                        Task currentTask = currentHistory.get(count);
-
-                        if (currentTask != null && !Utils.compareTasks(currentTask, fileTask)) {
-                            bufferedWriterBuffer.write(toCsvFileFormat(currentTask));
-                        } else {
-                            // got no tasks, rewrite the current line
-                            bufferedWriterBuffer.write(line);
-                        }
-                        bufferedWriterBuffer.newLine();
-                    } else {
-                        // if no history?
-                        bufferedWriterBuffer.write(line);
-                        bufferedWriterBuffer.newLine();
+            // Load history
+            if (line != null && line.equals("History:")) {
+                System.out.println("Loading history section");
+                while ((line = bufferedReader.readLine()) != null) {
+                    if (line.trim().isEmpty()) {
+                        System.out.println("Skipping empty history line");
+                        continue;
                     }
-                    count++;
+                    String csvData = line.replaceFirst("^\\d+\\.", "").trim();
+                    Task task = fromCsvToTaskFormat(csvData);
+                    if (task != null && allTypesTasks.containsKey(task.getTaskId())) {
+                        historyManager.add(task);
+                        System.out.println("Added task to history: " + task.getTaskId());
+                    } else {
+                        System.err.println("Skipping invalid history line or missing task: " + line);
+                    }
                 }
-
             }
+
         } catch (IOException e) {
-            throw new RuntimeException("Can't load a file: " + e.getMessage());
+            throw new RuntimeException("Failed to load file " + filePath + ": " + e.getMessage(), e);
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Invalid data format in file " + filePath + ": " + e.getMessage(), e);
         }
 
-        // Копирование буфера в основной файл
-        try {
-            Files.copy(fileBufferPath, filePath, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-        throw new RuntimeException("Can't load / copy a file: " + e.getMessage());
-        }
+        // Update task ID generator
+        long maxId = allTypesTasks.keySet().stream().mapToLong(Long::longValue).max().orElse(0L);
+        InMemoryTaskManager.id = maxId + 1;
+
+        // Debug: Print loaded tasks
+        System.out.println("Total tasks in allTypesTasks: " + allTypesTasks.size());
+        System.out.println("Tasks: " + getTasks().size());
+        System.out.println("Subtasks: " + getSubtasks().size());
+        System.out.println("Epics: " + getEpics().size());
     }
 
     public static String toCsvFileFormat(Task task){

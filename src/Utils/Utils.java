@@ -146,35 +146,49 @@ public abstract class Utils {
         return null;
     }
 
-    public static void outputTaskInfo(Task task){
-
+    public static void outputTaskInfo(Task task) {
+        if (task == null) {
+            return;
+        }
         System.out.println("Task Info:");
-        System.out.println("    TaskId: " + task.getTaskTitle());
-        System.out.println("    Title: " + task.getTaskTitle());
+        System.out.println("    TaskId: " + (task.getTaskId() != null ? task.getTaskId() : "Invalid ID"));
+        System.out.println("    Title: " + (task.getTaskTitle() != null ? task.getTaskTitle() : "Invalid Title"));
         System.out.println("    Type: " + task.getClass().getSimpleName());
         System.out.println("    Description: " + task.getDescription());
         System.out.println("    Status: " + task.getStatus());
 
-        if(task instanceof Epic){
-            int counter = 1;
+        if (task instanceof Epic) {
+            List<Subtask> subtasks = ((Epic) task).getSubtaskList();
             System.out.println("    Subtasks:");
-            for(Subtask subtask : ((Epic) task).getSubtaskList()){
-                System.out.println(counter + ". " + subtask.getTaskTitle());
-                System.out.println("    Description: " + task.getDescription());
-                System.out.println("    Status: " + task.getStatus());
-                counter++;
+            if (subtasks.isEmpty()) {
+                System.out.println("        [No subtasks]");
+            } else {
+                int counter = 1;
+                for (Subtask subtask : subtasks) {
+                    System.out.println("        " + counter + ". " + subtask.getTaskTitle());
+                    System.out.println("            Description: " + subtask.getDescription());
+                    System.out.println("            Status: " + subtask.getStatus());
+                    counter++;
+                }
             }
-        } else if(task instanceof Subtask){
+        } else if (task instanceof Subtask) {
             System.out.println("    Belongs to: " + ((Subtask) task).getParentId());
         }
     }
 
     public static void outputAllTasks(List<Task> allTasks) {
+        if (allTasks.isEmpty()) {
+            System.out.println("No tasks!.");
+            return;
+        }
         int counter = 1;
         for (Task task : allTasks) {
+            if (task == null) {
+                continue;
+            }
             System.out.println(counter + ". ");
             outputTaskInfo(task);
-            System.out.println("\n");
+            System.out.println();
             counter++;
         }
     }
