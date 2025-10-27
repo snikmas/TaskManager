@@ -15,8 +15,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Map;
 
-import static Managers.Managers.getDefaultHistory;
+import static Managers.Managers.*;
 import static Utils.Utils.parseStatus;
 
 public class FileBackendTaskManager extends InMemoryTaskManager implements TaskManager {
@@ -65,9 +66,10 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
     }
     // ============================
 
-    String firstLine = "id,type,title,status,description,epic\n";
+    String firstLine = "id,type,title,status,description,epic";
     private final Path filePath;
     private final Path fileBufferPath;
+    HistoryManager historyManager = getDefaultHistory();
 
     // ADD MORE
     public FileBackendTaskManager(){
@@ -98,6 +100,43 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
     }
     // fromat:
     public void save(){
+        Map<Long, Task> allTypesTasks = taskManager.getAllTypesTasks();
+
+        try(BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(filePath.toFile()));
+            BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath.toFile()))){
+                bufferedWriter.write(firstLine);
+                bufferedWriter.newLine();
+
+                if(allTypesTasks.isEmpty()) {
+                    System.out.println("There're no tasks!");
+                    return;
+                };
+                String line;
+                for(Task task : allTypesTasks.values()) {
+                    if (task == null) continue;
+                    line = toCsvFileFormat(task);
+                    bufferedWriter.write(line);
+                    bufferedWriter.newLine();
+                }
+
+                List<Task> curHistory = historyManager.getHistory();
+                if(!curHistory.isEmpty()){
+                    bufferedWriter.write("History:");
+                    bufferedWriter.newLine();
+
+                    int counter = 1;
+                    for(Task task : curHistory){
+                        line = toCsvFileFormat(task);
+                        bufferedWriter.write(counter + "." + line);
+                        bufferedWriter.newLine();
+                        counter++;
+                    }
+                }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
 
 
     }
@@ -141,7 +180,7 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
             if(line != null && line.equals("History:")){
                 bufferedWriterBuffer.write(line);
                 bufferedWriterBuffer.newLine();
-                HistoryManager historyManager = getDefaultHistory();
+
                 List<Task> currentHistory = historyManager.getHistory();
                 int count = 0;
 
@@ -168,14 +207,14 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
 
             }
         } catch (IOException e) {
-            throw new RuntimeException("Ошибка при загрузке файла: " + e.getMessage());
+            throw new RuntimeException("Can't load a file: " + e.getMessage());
         }
 
         // Копирование буфера в основной файл
         try {
             Files.copy(fileBufferPath, filePath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
-        throw new RuntimeException("Ошибка при загрузке или копировании файла: " + e.getMessage());
+        throw new RuntimeException("Can't load / copy a file: " + e.getMessage());
         }
     }
 

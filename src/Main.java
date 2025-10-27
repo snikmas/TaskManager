@@ -1,5 +1,6 @@
 import Managers.Interfaces.HistoryManager;
 import Managers.Interfaces.TaskManager;
+import Managers.FileBackendTaskManager;
 import Managers.Managers;
 import Tasks.Epic;
 import Tasks.Subtask;
@@ -12,7 +13,7 @@ public class Main {
 
     static TaskManager taskManager = Managers.getDefault();
     static HistoryManager historyManager = Managers.getDefaultHistory();
-    static TaskManager fileManager = Managers.getDefaultFileBackendManager();
+    static FileBackendTaskManager fileManager = Managers.getDefaultFileBackendManager();
 
     public static void main(String[] args) {
 
@@ -164,6 +165,10 @@ public class Main {
                     List<Task> history = taskManager.history();
                     System.out.println("History:");
                     Utils.outputAllTasks(history);
+                }
+
+                case 9 -> {
+                    fileManager.save();
                 }
             }
 
