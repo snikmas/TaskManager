@@ -88,7 +88,7 @@ public class InMemoryTaskManager implements TaskManager {
         subtask.setPeriod(Utils.getMatcherPeriod(userMatcherInput));
 
         // calculate end time...
-        subtask.setEndDateTime(Utils.calculateEndTime(subtask.getStartDateTime(), task.getDuration(), task.getPeriod()));
+        subtask.setEndDateTime(Utils.calculateEndTime(subtask.getStartDateTime(), subtask.getDuration(), subtask.getPeriod()));
 
 
 

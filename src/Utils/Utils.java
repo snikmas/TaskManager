@@ -174,8 +174,8 @@ public abstract class Utils {
                     System.out.println("            Description: " + subtask.getDescription());
                     System.out.println("            Status: " + subtask.getStatus());
                     System.out.println("            Start Time: " + formatDateTime(subtask.getStartDateTime()));
-                    System.out.println("            End Time: " + formatDateTime(subtask.getEndDateTime()));
                     System.out.println("            Duration:" + formatDurationPeriod(subtask.getDuration(), subtask.getPeriod()));
+                    System.out.println("            End Time: " + formatDateTime(subtask.getEndDateTime()));
                     counter++;
                 }
             }
