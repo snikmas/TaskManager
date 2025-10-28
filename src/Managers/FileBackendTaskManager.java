@@ -164,72 +164,56 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
             // Skip the header line
             String line = bufferedReader.readLine();
             if (line == null || !line.equals(firstLine)) {
-                throw new RuntimeException("Invalid or missing header in file: " + filePath);
+                throw new RuntimeException("Invalid: " + filePath);
             }
-            System.out.println("Header verified: " + line);
 
             // Load tasks
             int taskCount = 0;
             while ((line = bufferedReader.readLine()) != null && !line.equals("History:")) {
                 if (line.trim().isEmpty()) {
-                    System.out.println("Skipping empty task line");
                     continue;
                 }
                 Task task = fromCsvToTaskFormat(line);
                 if (task == null) {
-                    System.err.println("Skipping invalid task line: " + line);
                     continue;
                 }
 
                 allTypesTasks.put(task.getTaskId(), task);
                 if (task instanceof Task && !(task instanceof Subtask || task instanceof Epic)) {
                     getTasks().put(task.getTaskId(), (Task) task);
-                    System.out.println("Added Task: " + task.getTaskId());
                 } else if (task instanceof Subtask) {
                     getSubtasks().put(task.getTaskId(), (Subtask) task);
-                    System.out.println("Added Subtask: " + task.getTaskId());
                 } else if (task instanceof Epic) {
                     getEpics().put(task.getTaskId(), (Epic) task);
-                    System.out.println("Added Epic: " + task.getTaskId());
                 }
                 taskCount++;
             }
-            System.out.println("Loaded " + taskCount + " tasks");
 
             // Load history
             if (line != null && line.equals("History:")) {
-                System.out.println("Loading history section");
                 while ((line = bufferedReader.readLine()) != null) {
                     if (line.trim().isEmpty()) {
-                        System.out.println("Skipping empty history line");
                         continue;
                     }
                     String csvData = line.replaceFirst("^\\d+\\.", "").trim();
                     Task task = fromCsvToTaskFormat(csvData);
                     if (task != null && allTypesTasks.containsKey(task.getTaskId())) {
                         historyManager.add(task);
-                        System.out.println("Added task to history: " + task.getTaskId());
                     } else {
-                        System.err.println("Skipping invalid history line or missing task: " + line);
+                        System.err.println("Missing task: " + line);
                     }
                 }
             }
 
         } catch (IOException e) {
-            throw new RuntimeException("Failed to load file " + filePath + ": " + e.getMessage(), e);
+            throw new RuntimeException("Failed to load: " + filePath + ": " + e.getMessage(), e);
         } catch (NumberFormatException e) {
-            throw new RuntimeException("Invalid data format in file " + filePath + ": " + e.getMessage(), e);
+            throw new RuntimeException("Invalid data format: " + filePath + ": " + e.getMessage(), e);
         }
 
         // Update task ID generator
         long maxId = allTypesTasks.keySet().stream().mapToLong(Long::longValue).max().orElse(0L);
         InMemoryTaskManager.id = maxId + 1;
-
-        // Debug: Print loaded tasks
-        System.out.println("Total tasks in allTypesTasks: " + allTypesTasks.size());
-        System.out.println("Tasks: " + getTasks().size());
-        System.out.println("Subtasks: " + getSubtasks().size());
-        System.out.println("Epics: " + getEpics().size());
     }
 
     public static String toCsvFileFormat(Task task){
@@ -243,7 +227,6 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
 
     }
 
-    // no need.. cuz task is a reference
     public static Task fromCsvToTaskFormat(String line){
 
 
@@ -280,5 +263,4 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
 
         return task;
     }
-
 }

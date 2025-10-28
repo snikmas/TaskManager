@@ -9,6 +9,7 @@ import Tasks.Task;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
 
 import static Utils.Utils.updateProperty;
 
@@ -26,12 +27,41 @@ public class InMemoryTaskManager implements TaskManager {
 
     // ================================================
     // =========== CREATING FUNCTIONS =================
+
+    // FOR UNIT TEST OVERLOAD
+    public void createTask(Task task, String title, String description){
+        System.out.println("Title: ");
+        task.setTaskTitle(title);
+        System.out.println("Description: ");
+        task.setDescription(description);
+
+        task.setStatus(Status.NEW);
+        task.setTaskId(id);
+
+        tasks.put(id, task);
+        allTypesTasks.put(id, task);
+        id++;
+    }
+
     public void createTask(Task task) {
-        // just fill info, later can input to the func
+
         System.out.println("Title:");
         task.setTaskTitle(Utils.getInput());
         System.out.println("Description:");
         task.setDescription(Utils.getInput());
+
+        System.out.println("Start time: [YYYY-MM-DD HH-MM]");
+        task.setStartDateTime(Utils.getInputTime());
+
+        System.out.println("Duration: [YYYY,MM,DD,HH,MM]");
+        Matcher userMatcherInput = Utils.getInputDurationPeriod();
+
+        task.setDuration(Utils.getMatcherDuration(userMatcherInput));
+        task.setPeriod(Utils.getMatcherPeriod(userMatcherInput));
+
+        // calculate end time...
+        task.setEndDateTime(Utils.calculateEndTime(task.getStartDateTime(), task.getDuration(), task.getPeriod()));
+
 
         task.setStatus(Status.NEW);
         task.setTaskId(id);
@@ -47,6 +77,20 @@ public class InMemoryTaskManager implements TaskManager {
         subtask.setTaskTitle(Utils.getInput());
         System.out.println("Description:");
         subtask.setDescription(Utils.getInput());
+
+        System.out.println("Start time: [YYYY-MM-DD HH-MM]");
+        subtask.setStartDateTime(Utils.getInputTime());
+
+        System.out.println("Duration: [YYYY,MM,DD,HH,MM]");
+        Matcher userMatcherInput = Utils.getInputDurationPeriod();
+
+        subtask.setDuration(Utils.getMatcherDuration(userMatcherInput));
+        subtask.setPeriod(Utils.getMatcherPeriod(userMatcherInput));
+
+        // calculate end time...
+        subtask.setEndDateTime(Utils.calculateEndTime(subtask.getStartDateTime(), task.getDuration(), task.getPeriod()));
+
+
 
         System.out.println("Epic Id:");
         while (true) {
@@ -70,6 +114,7 @@ public class InMemoryTaskManager implements TaskManager {
         id++;
     }
 
+    // epic's time is calculating by all its subtasks
     public void createTask(Epic epic) {
 
         // just fill info
@@ -246,5 +291,8 @@ public class InMemoryTaskManager implements TaskManager {
     public HashMap<Long, Task> getAllTypesTasks(){
         return allTypesTasks;
     }
+
+
+
 
 }

@@ -40,6 +40,9 @@ public interface TaskManager {
     public void createTask(Task task);
     public void createTask(Subtask subtask);
     public void createTask(Epic epic);
+    // for unit test!
+    public void createTask(Task task, String title, String description);
+
 
     // get an object that should completely replace the old: updateEpic/Subtask/Task epics.getId(), epic
     // returns last 10

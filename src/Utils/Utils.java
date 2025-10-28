@@ -5,8 +5,13 @@ import Tasks.Status;
 import Tasks.Subtask;
 import Tasks.Task;
 
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 
 public abstract class Utils {
 
@@ -217,6 +222,101 @@ public abstract class Utils {
         }
         return null;
     }
+
+    // year / mm / d
+    public static LocalDateTime getInputTime(){
+
+        // mm for minutes; MM for months
+
+        String userInput = scanner.nextLine();
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        LocalDateTime inputtedDataTime;
+        while(((inputtedDataTime = checkDataInput(userInput, currentDateTime)) == null)){
+            userInput = scanner.nextLine();
+        }
+
+        System.out.println(inputtedDataTime);
+
+        return inputtedDataTime;
+    }
+
+    public static LocalDateTime checkDataInput(String userInput, LocalDateTime timeNow){
+        if(!Pattern.matches("\\d\\d\\d\\d-\\d\\d-\\d\\d \\d\\d-\\d\\d", userInput)) {
+            System.out.println("Invalid format! Please, try [YYYY-MM-DD HH-MM]");
+            return null;
+        }
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH-mm");
+            LocalDateTime userInputDateTime;
+        try {
+            userInputDateTime = LocalDateTime.parse(userInput.trim(), formatter);
+        } catch (Exception e) {
+            System.out.println("Invalid Input! Try again");
+            return null;
+        }
+
+
+        if(userInputDateTime.isBefore(timeNow)){
+            System.out.println("Error! Invalid date: the time has already passed");
+            return null;
+        }
+
+        return userInputDateTime;
+    }
+
+//    System.out.println("Duration: [YYYY,MM,DD,HH,MM]");
+    public static Matcher getInputDurationPeriod() {
+        String userInput = scanner.nextLine().trim();
+        String regex = "^(\\d{4}|),(\\d{2}|),(\\d{2}|),(\\d{2}|),(\\d{2}|),(\\d{2}|)";
+
+        while (!Pattern.matches(userInput, regex)) {
+            System.out.println("Invalid Input! Try again (Format: [YYYY,MM,DD,HH,MM");
+            userInput = scanner.nextLine();
+        }
+
+        Pattern pattern = Pattern.compile(regex);
+
+        return pattern.matcher(userInput);
+    }
+
+    public static Duration getMatcherDuration(Matcher matcher) {
+        // to long and from long to duraotion
+        long hours = 0L;
+        long minutes = 0L;
+
+        if(!matcher.group(4).isEmpty() && matcher.group(4) != null) hours = Long.parseLong(matcher.group(4));
+        if(!matcher.group(5).isEmpty() && matcher.group(5) != null) minutes = Long.parseLong(matcher.group(5));
+        return Duration.ofHours(hours).plusMinutes(minutes);
+    }
+
+    public static Period getMatcherPeriod(Matcher matcher) {
+
+        long months = 0L;
+        long days = 0L;
+        int years = 0;
+
+        if(!matcher.group(1).isEmpty() && matcher.group(1) != null)  years = Integer.parseInt(matcher.group(1));
+        if(!matcher.group(2).isEmpty() && matcher.group(2) != null)  months = Long.parseLong(matcher.group(2));
+        if(!matcher.group(3).isEmpty() && matcher.group(3) != null) days = Long.parseLong(matcher.group(3));
+
+        return Period.ofYears(years).plusMonths(months).plusDays(days);
+    }
+
+    public static LocalDateTime calculateEndTime(LocalDateTime startTime, Duration duration, Period period){
+
+        long years = period.getYears();
+        long month = period.getMonths();
+        long days = period.getDays();
+        long hours = duration.toHours();
+        long minutes = duration.toMinutes();
+
+        return startTime.plusYears(years)
+                .plusMonths(month)
+                .plusDays(days)
+                .plusHours(hours)
+                .plusMinutes(minutes);
+    }
+
 
     public static boolean compareTasks(Task currentTask, Task fileTask) {
         return (
