@@ -173,6 +173,9 @@ public abstract class Utils {
                     System.out.println("        " + counter + ". " + subtask.getTaskTitle());
                     System.out.println("            Description: " + subtask.getDescription());
                     System.out.println("            Status: " + subtask.getStatus());
+                    System.out.println("            Start Time: " + formatDateTime(subtask.getStartDateTime()));
+                    System.out.println("            End Time: " + formatDateTime(subtask.getEndDateTime()));
+                    System.out.println("            Duration:" + formatDurationPeriod(subtask.getDuration(), subtask.getPeriod()));
                     counter++;
                 }
             }
@@ -327,5 +330,23 @@ public abstract class Utils {
                 && currentTask.getClass().equals(fileTask.getClass());
     }
 
+    public static String formatDateTime(LocalDateTime dateTime){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        return dateTime.format(formatter);
+    }
+
+    public static String formatDurationPeriod(Duration duration, Period period){
+        StringBuilder output = new StringBuilder();
+        // later has to check if time is 0
+        if(period.getYears() != 0) output.append(period.getYears()).append("/");
+        if(period.getMonths() != 0) output.append(period.getMonths()).append("/");
+        if(period.getDays() != 0) output.append(period.getDays()).append(" ");
+
+        if(duration.toHours() != 0) output.append(duration.toHours()).append(":");
+        if(duration.toMinutes() != 0) output.append(duration.toMinutes());
+
+        return output.toString();
+
+    }
 
 }
