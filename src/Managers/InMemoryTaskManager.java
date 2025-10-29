@@ -62,7 +62,6 @@ public class InMemoryTaskManager implements TaskManager {
         // calculate end time...
         task.setEndDateTime(Utils.calculateEndTime(task.getStartDateTime(), task.getDuration(), task.getPeriod()));
 
-
         task.setStatus(Status.NEW);
         task.setTaskId(id);
 
@@ -78,6 +77,7 @@ public class InMemoryTaskManager implements TaskManager {
         System.out.println("Description:");
         subtask.setDescription(Utils.getInput());
 
+        // SET OPTIONALLY + 00 IF NO INPUTS
         System.out.println("Start time: [YYYY-MM-DD HH-MM]");
         subtask.setStartDateTime(Utils.getInputTime());
 
@@ -90,18 +90,29 @@ public class InMemoryTaskManager implements TaskManager {
         // calculate end time...
         subtask.setEndDateTime(Utils.calculateEndTime(subtask.getStartDateTime(), subtask.getDuration(), subtask.getPeriod()));
 
-
-
+        // change the start time if..
         System.out.println("Epic Id:");
         while (true) {
             long epicId = Utils.getLongInput();
             if (!epics.containsKey(epicId)) {
                 System.out.println("Wrong ID! Try again!");
             } else {
-                Utils.changeEpicStatus(epics.get(epicId));
-                updateTask(epics.get(epicId));
+                Epic parentEpic = epics.get(epicId);
+                Utils.changeEpicStatus(parentEpic);
+                updateTask(parentEpic);
                 subtask.setParentId(epicId);
-                epics.get(epicId).getSubtaskList().add(subtask);
+                parentEpic.getSubtaskList().add(subtask);
+
+                while(parentEpic.getStartDateTime().isAfter(subtask.getStartDateTime())){
+                    System.out.println("The subtask's Start time should be after it's epic's start time! Try again...");
+                    System.out.println("Start time: [YYYY-MM-DD HH-MM]");
+                    subtask.setStartDateTime(Utils.getInputTime());
+                }
+
+                if(parentEpic.getEndDateTime().isBefore(subtask.getEndDateTime())){
+                    parentEpic.setEndDateTime(subtask.getEndDateTime());
+                }
+
                 break;
             }
         }
@@ -151,6 +162,46 @@ public class InMemoryTaskManager implements TaskManager {
                 task.setDescription(description);
             }
             case 3 -> {
+
+                System.out.println("Duration: [YYYY,MM,DD,HH,MM]");
+                Matcher userMatcherInput = Utils.getInputDurationPeriod();
+
+                task.setDuration(Utils.getMatcherDuration(userMatcherInput));
+                task.setPeriod(Utils.getMatcherPeriod(userMatcherInput));
+
+                // recalculate end time
+                task.setEndDateTime(Utils.calculateEndTime(task.getStartDateTime(), task.getDuration(), task.getPeriod()));
+                if (task instanceof Subtask subtask){
+                    Epic epicParent = epics.get(subtask.getParentId());
+                    if(epicParent.getEndDateTime().isBefore(subtask.getEndDateTime())){
+                        epicParent.setEndDateTime(subtask.getEndDateTime());
+                    }
+                }
+
+            }
+            case 4 -> {
+                System.out.println("Start time: [YYYY-MM-DD HH-MM]");
+                task.setStartDateTime(Utils.getInputTime());
+                task.setStartDateTime(Utils.getInputTime());
+                // recalalculate again
+                task.setEndDateTime(Utils.calculateEndTime(task.getStartDateTime(), task.getDuration(), task.getPeriod()));
+
+                if (task instanceof Subtask subtask){
+                    Epic epicParent = epics.get(subtask.getParentId());
+                    while(subtask.getStartDateTime().isBefore(epicParent.getStartDateTime())){
+                        System.out.println("The time must be after the epic's task!");
+                        System.out.println("Start time: [YYYY-MM-DD HH-MM]");
+                        task.setStartDateTime(Utils.getInputTime());
+                        task.setStartDateTime(Utils.getInputTime());
+                        task.setEndDateTime(Utils.calculateEndTime(task.getStartDateTime(), task.getDuration(), task.getPeriod()));
+                        // rewrite.. the end of the task
+                    }
+                    if(epicParent.getEndDateTime().isBefore(subtask.getEndDateTime())){
+                        epicParent.setEndDateTime(subtask.getEndDateTime());
+                    }
+                }
+            }
+            case 5 -> {
                 System.out.println("New status:");
                 Status status = Utils.getStatus();
                 task.setStatus(status);

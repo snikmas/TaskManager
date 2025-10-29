@@ -115,15 +115,18 @@ public abstract class Utils {
         epic.setStatus(Status.IN_PROGRESS);
     }
 
+    // only for epic?
     public static int updateProperty(String type){
         System.out.println("What would you like to update?");
         System.out.println("1. Title");
         System.out.println("2. Description");
+        System.out.println("3. Duration");
+        System.out.println("4. Start Time");
         if(!type.equals("Epic")){
-            System.out.println("3. Status");
-            return getInput(3,  false);
+            System.out.println("5. Status");
+            return getInput(5,  false);
         } else {
-            return getInput(2, false);
+            return getInput(4, false);
         }
 
         // can't change epic's status
@@ -161,6 +164,9 @@ public abstract class Utils {
         System.out.println("    Type: " + task.getClass().getSimpleName());
         System.out.println("    Description: " + task.getDescription());
         System.out.println("    Status: " + task.getStatus());
+        System.out.println("    Start time: " + task.getStartDateTime());
+        System.out.println("    Duration: " + formatDurationPeriod(task.getDuration(), task.getPeriod()));
+        System.out.println("    End time: " + task.getEndDateTime());
 
         if (task instanceof Epic) {
             List<Subtask> subtasks = ((Epic) task).getSubtaskList();
@@ -238,25 +244,36 @@ public abstract class Utils {
             userInput = scanner.nextLine();
         }
 
-        System.out.println(inputtedDataTime);
 
         return inputtedDataTime;
     }
 
+//        String regex = "^(\\d{4}|),(\\d{2}|),(\\d{2}|),(\\d{2}|),(\\d{2}|),(\\d{2}|)";
     public static LocalDateTime checkDataInput(String userInput, LocalDateTime timeNow){
-        if(!Pattern.matches("\\d\\d\\d\\d-\\d\\d-\\d\\d \\d\\d-\\d\\d", userInput)) {
+        // time is optionally
+        if(!Pattern.matches("^(\\d{4})-(\\d{2})-(\\d{2})(?: (\\d{2})(?:-(\\d{2}))?)?$", userInput)) {
             System.out.println("Invalid format! Please, try [YYYY-MM-DD HH-MM]");
             return null;
         }
 
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH-mm");
+            DateTimeFormatter formatterWithHours = DateTimeFormatter.ofPattern("yyyy-MM-dd HH-mm");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             LocalDateTime userInputDateTime;
-        try {
-            userInputDateTime = LocalDateTime.parse(userInput.trim(), formatter);
-        } catch (Exception e) {
-            System.out.println("Invalid Input! Try again");
-            return null;
-        }
+
+            try {
+                if(userInput.contains(" ")){
+                    userInputDateTime = LocalDateTime.parse(userInput.trim(), formatterWithHours);
+                } else {
+                    LocalDate dateOnly = LocalDate.parse(userInput.trim(), formatter);
+                    userInputDateTime = dateOnly.atStartOfDay();
+
+                }
+            } catch (Exception e1) {
+                // the 1st throws exc, try this one
+                System.out.println("Invalid Input! Try again (error in checkDataInput e2");
+                return null;
+
+            }
 
 
         if(userInputDateTime.isBefore(timeNow)){
@@ -269,38 +286,55 @@ public abstract class Utils {
 
 //    System.out.println("Duration: [YYYY,MM,DD,HH,MM]");
     public static Matcher getInputDurationPeriod() {
+        System.out.println("Duration: [YYYY,MM,DD,HH,MM OR YYYY,MM,DD OR HH,MM]");
         String userInput = scanner.nextLine().trim();
-        String regex = "^(\\d{4}|),(\\d{2}|),(\\d{2}|),(\\d{2}|),(\\d{2}|),(\\d{2}|)";
 
-        while (!Pattern.matches(userInput, regex)) {
-            System.out.println("Invalid Input! Try again (Format: [YYYY,MM,DD,HH,MM");
-            userInput = scanner.nextLine();
-        }
+        String regex = "^(\\d{4})(?:,(\\d{2}))?(?:,(\\d{2}))?(?:,(\\d{2}))?(?:,(\\d{2}))?$"
+            + "|^(\\d{2})(?:,(\\d{2}))?$";
 
         Pattern pattern = Pattern.compile(regex);
 
-        return pattern.matcher(userInput);
+        while (!pattern.matcher(userInput).matches()) {
+            System.out.println("Invalid Input! Try again (Format: [YYYY,MM,DD,HH,MM OR YYYY,MM,DD OR HH,MM])");
+            userInput = scanner.nextLine().trim();
+        }
+
+        Matcher m = pattern.matcher(userInput);
+        m.matches();               // <-- IMPORTANT: make the groups available
+        return m;
     }
 
     public static Duration getMatcherDuration(Matcher matcher) {
-        // to long and from long to duraotion
-        long hours = 0L;
+        long hours   = 0L;
         long minutes = 0L;
 
-        if(!matcher.group(4).isEmpty() && matcher.group(4) != null) hours = Long.parseLong(matcher.group(4));
-        if(!matcher.group(5).isEmpty() && matcher.group(5) != null) minutes = Long.parseLong(matcher.group(5));
+        if (matcher.group(4) != null) {
+            hours = Long.parseLong(matcher.group(4));
+            if (matcher.group(5) != null) {
+                minutes = Long.parseLong(matcher.group(5));
+            }
+        }
+
+        else if (matcher.group(6) != null) {
+            hours = Long.parseLong(matcher.group(6));
+            if (matcher.group(7) != null) {
+                minutes = Long.parseLong(matcher.group(7));
+            }
+        }
+
         return Duration.ofHours(hours).plusMinutes(minutes);
     }
 
     public static Period getMatcherPeriod(Matcher matcher) {
-
+        int years   = 0;
         long months = 0L;
-        long days = 0L;
-        int years = 0;
+        long days   = 0L;
 
-        if(!matcher.group(1).isEmpty() && matcher.group(1) != null)  years = Integer.parseInt(matcher.group(1));
-        if(!matcher.group(2).isEmpty() && matcher.group(2) != null)  months = Long.parseLong(matcher.group(2));
-        if(!matcher.group(3).isEmpty() && matcher.group(3) != null) days = Long.parseLong(matcher.group(3));
+        if (matcher.group(1) != null) {
+            years = Integer.parseInt(matcher.group(1));
+            if (matcher.group(2) != null) months = Long.parseLong(matcher.group(2));
+            if (matcher.group(3) != null) days   = Long.parseLong(matcher.group(3));
+        }
 
         return Period.ofYears(years).plusMonths(months).plusDays(days);
     }
@@ -338,12 +372,12 @@ public abstract class Utils {
     public static String formatDurationPeriod(Duration duration, Period period){
         StringBuilder output = new StringBuilder();
         // later has to check if time is 0
-        if(period.getYears() != 0) output.append(period.getYears()).append("/");
-        if(period.getMonths() != 0) output.append(period.getMonths()).append("/");
-        if(period.getDays() != 0) output.append(period.getDays()).append(" ");
+        output.append(period.getYears()).append("/");
+        output.append(period.getMonths()).append("/");
+        output.append(period.getDays()).append(" ");
 
-        if(duration.toHours() != 0) output.append(duration.toHours()).append(":");
-        if(duration.toMinutes() != 0) output.append(duration.toMinutes());
+        output.append(duration.toHours()).append(":");
+        output.append(duration.toMinutes());
 
         return output.toString();
 
