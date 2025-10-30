@@ -95,12 +95,18 @@ public class Main {
                     System.out.println("Backing to the menu...\n");
                 }
                 case 4 -> {
-                    System.out.println("All tasks:");
-                    List<Task> allTasks = fileManager.getAllTasks();
-                    for (Task task : allTasks) {
-                        historyManager.add(task);
-                    }
-                    Utils.outputAllTasks(allTasks);
+                    System.out.println("Get all tasks randomly or sort it by prioritized tasks?");
+                    int userChoice = Utils.getInput(2, false);
+                    // get all tasks; 2 - > by priority
+                    if (userChoice == 1)
+                        System.out.println("All tasks:");
+                        List<Task> allTasks = fileManager.getAllTasks();
+                        for (Task task : allTasks) {
+                            historyManager.add(task);
+                        }
+                        Utils.outputAllTasks(allTasks);
+                    } else if(userChoice == 2){
+                    // get priority
                 }
                 case 5 -> {
                     System.out.println("Input Epic's id:");
