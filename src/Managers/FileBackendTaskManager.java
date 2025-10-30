@@ -14,6 +14,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +24,7 @@ import static Managers.Managers.*;
 import static Utils.Utils.parseStatus;
 
 public class FileBackendTaskManager extends InMemoryTaskManager implements TaskManager {
+
 
     //   ============================
     //          BASICS
@@ -66,7 +70,7 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
     }
     // ============================
 
-    String firstLine = "id,type,title,status,description,epic";
+    String firstLine = "id,type,title,status,description,epic,startTime,durationTime,endTime";
     private final Path filePath;
     private final Path fileBufferPath;
     HistoryManager historyManager = getDefaultHistory();
@@ -101,19 +105,21 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
     }
     // fromat:
     public void save(){
-        Map<Long, Task> allTypesTasks = taskManager.getAllTypesTasks();
+
 
         try(BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(filePath.toFile()));
             BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath.toFile()))){
                 bufferedWriter.write(firstLine);
                 bufferedWriter.newLine();
 
-                if(allTypesTasks.isEmpty()) {
+                if(getAllTypesTasks().isEmpty()) {
+                    //
+                    System.out.println(getAllTypesTasks().values());
                     System.out.println("There're no tasks!");
                     return;
                 };
                 String line;
-                for(Task task : allTypesTasks.values()) {
+                for(Task task : getAllTypesTasks().values()) {
                     if (task == null) continue;
                     line = toCsvFileFormat(task);
                     bufferedWriter.write(line);
@@ -144,7 +150,7 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
 
     // IT WILL LOAD AS IT JUST STARTED WORK, SO NO NEED TO CHECK WITH CURRENT...
     public void load() {
-        Map<Long, Task> allTypesTasks = getAllTypesTasks();
+
         HistoryManager historyManager = getDefaultHistory();
 
         System.out.println("Loading from file: " + filePath.toAbsolutePath());
@@ -153,18 +159,22 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
             return;
         }
 
+        // can this things delete my file?
         // Clear existing tasks and history
-        allTypesTasks.clear();
-        getTasks().clear();
-        getSubtasks().clear();
-        getEpics().clear();
-        historyManager.getHistory().clear();
+//        Managers.getDefault().getAllTypesTasks().clear();
+//        getTasks().clear();
+//        getSubtasks().clear();
+//        getEpics().clear();
+//        historyManager.getHistory().clear();
 
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath.toFile()))) {
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(filePath.toFile()));
+            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(filePath.toFile(), true))) {
             // Skip the header line
+
             String line = bufferedReader.readLine();
             if (line == null || !line.equals(firstLine)) {
-                throw new RuntimeException("Invalid: " + filePath);
+                bufferedWriter.write(firstLine);
+                bufferedWriter.newLine();
             }
 
             // Load tasks
@@ -178,13 +188,14 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
                     continue;
                 }
 
-                allTypesTasks.put(task.getTaskId(), task);
+                // from the csv
+                this.getAllTypesTasks().put(task.getTaskId(), task);
                 if (task instanceof Task && !(task instanceof Subtask || task instanceof Epic)) {
-                    getTasks().put(task.getTaskId(), (Task) task);
+                    this.getTasks().put(task.getTaskId(), task);
                 } else if (task instanceof Subtask) {
-                    getSubtasks().put(task.getTaskId(), (Subtask) task);
+                    this.getSubtasks().put(task.getTaskId(), (Subtask) task);
                 } else if (task instanceof Epic) {
-                    getEpics().put(task.getTaskId(), (Epic) task);
+                    this.getEpics().put(task.getTaskId(), (Epic) task);
                 }
                 taskCount++;
             }
@@ -197,7 +208,8 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
                     }
                     String csvData = line.replaceFirst("^\\d+\\.", "").trim();
                     Task task = fromCsvToTaskFormat(csvData);
-                    if (task != null && allTypesTasks.containsKey(task.getTaskId())) {
+                    System.out.println("history task sdave: " + task);
+                    if (task != null && Managers.getDefault().getAllTypesTasks().containsKey(task.getTaskId())) {
                         historyManager.add(task);
                     } else {
                         System.err.println("Missing task: " + line);
@@ -212,8 +224,13 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
         }
 
         // Update task ID generator
-        long maxId = allTypesTasks.keySet().stream().mapToLong(Long::longValue).max().orElse(0L);
+        long maxId = Managers.getDefault().getAllTypesTasks().keySet().stream().mapToLong(Long::longValue).max().orElse(0L);
         InMemoryTaskManager.id = maxId + 1;
+        for(Task task : Managers.getDefault().getAllTypesTasks().values()){
+            if(task == null) {
+                System.out.println("no taskss."); return;
+            }
+        }
     }
 
     public static String toCsvFileFormat(Task task){
@@ -223,8 +240,11 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
         String status = task.getStatus().toString();
         String type = task.getClass().getSimpleName();
         String epic = type.equals("Subtask") ? ((Subtask) task).getParentId().toString() : "";
-        return (String.format("%s,%s,%s,%s,%s,%s", id, type, title, status, description, epic ));
-
+        String startTime = task.getStartDateTime().toString();
+        String durationTIme = task.getDuration().toString();
+        String endTime = task.getEndDateTime().toString();
+        return (String.format("%s,%s,%s,%s,%s,%s,%s,%s,%s", id, type, title, status, description, epic, startTime, durationTIme, endTime));
+//        String firstLine = "id,type,title,status,description,epic,startTime,durationTime,endTime";
     }
 
     public static Task fromCsvToTaskFormat(String line){
@@ -236,18 +256,27 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
 
         if (data.length < 5) return null;
 
-        Long taskId = Long.parseLong(data[0].trim());
-        String type = data[1].trim();
-        String title = data[2].trim();
-        Status status = parseStatus(data[3].trim());
-        String description = data[4].trim();
+        int i = 0;
+        String epicId;
+        Long taskId = Long.parseLong(data[i++].trim());
+        String type = data[i++].trim();
+        String title = data[i++].trim();
+        Status status = parseStatus(data[i++].trim());
+        String description = data[i++].trim();
+        if(data[i].isEmpty()) i++;
+        // case if it has an epic?
+
+        String startTime = data[i++].trim();
+        String durationTime = data[i++].trim();
+        String endTime = data[i++].trim();
 
 
         switch (type) {
             case "Subtask" -> {
                 task = new Subtask();
                 if (data.length > 5) {
-                    ((Subtask) task).setParentId(Long.parseLong(data[5].trim()));
+                    epicId = data[5].trim();
+                    ((Subtask) task).setParentId(Long.parseLong(epicId));
                 }
             }
             case "Epic" -> {
@@ -260,6 +289,30 @@ public class FileBackendTaskManager extends InMemoryTaskManager implements TaskM
         task.setTaskTitle(title);
         task.setStatus(status);
         task.setDescription(description);
+
+        try {
+            task.setStartDateTime(LocalDateTime.parse(startTime));
+        } catch (Exception e1){
+            try {
+                task.setStartDateTime(LocalDate.parse(startTime).atStartOfDay());
+            } catch (Exception e2){
+                System.out.println("from csv to task fromat, end, still wrong");
+            }
+        }
+
+        task.setDuration(Duration.parse(durationTime));
+
+
+        try {
+            task.setEndDateTime(LocalDateTime.parse(endTime));
+        } catch (Exception e1){
+            try {
+                task.setEndDateTime(LocalDate.parse(endTime).atStartOfDay());
+            } catch (Exception e2){
+                System.out.println("from csv to task fromat, end, still wrong");
+            }
+
+        }
 
         return task;
     }

@@ -53,7 +53,7 @@ public class InMemoryTaskManager implements TaskManager {
         System.out.println("Start time: [YYYY-MM-DD HH-MM]");
         task.setStartDateTime(Utils.getInputTime());
 
-        System.out.println("Duration: [YYYY,MM,DD,HH,MM]");
+        System.out.println("Duration: [YYYY,MM,DD,HH,MM OR YYYY,MM,DD OR HH,MM]");
         Matcher userMatcherInput = Utils.getInputDurationPeriod();
 
         task.setDuration(Utils.getMatcherDuration(userMatcherInput));

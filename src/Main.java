@@ -24,7 +24,10 @@ public class Main {
             input = Utils.getInput(9, true);
 
             switch (input) {
-                case 0 -> System.out.println("See you next time!");
+                case 0 -> {
+                    System.out.println("See you next time!");
+                    return;
+                }
                 case 1 -> {
                     int taskType = Utils.chooseTypeTask();
                     switch (taskType) {

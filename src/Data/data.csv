@@ -1,1 +1,2 @@
-id,type,title,status,description,epic
+id,type,title,status,description,epic,startTime,durationTime,endTime
+1,Task,ta,NEW,ta,,2026-01-01T00:00,PT12H12M,2026-01-02T00:12

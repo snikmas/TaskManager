@@ -236,7 +236,6 @@ public abstract class Utils {
     public static LocalDateTime getInputTime(){
 
         // mm for minutes; MM for months
-
         String userInput = scanner.nextLine();
         LocalDateTime currentDateTime = LocalDateTime.now();
         LocalDateTime inputtedDataTime;
@@ -284,9 +283,9 @@ public abstract class Utils {
         return userInputDateTime;
     }
 
-//    System.out.println("Duration: [YYYY,MM,DD,HH,MM]");
+//    System.out.println("Duration: [YYYY,MM,DD,HH,MM OR YYYY,MM,DD OR HH,MM]");
     public static Matcher getInputDurationPeriod() {
-        System.out.println("Duration: [YYYY,MM,DD,HH,MM OR YYYY,MM,DD OR HH,MM]");
+
         String userInput = scanner.nextLine().trim();
 
         String regex = "^(\\d{4})(?:,(\\d{2}))?(?:,(\\d{2}))?(?:,(\\d{2}))?(?:,(\\d{2}))?$"
@@ -372,12 +371,16 @@ public abstract class Utils {
     public static String formatDurationPeriod(Duration duration, Period period){
         StringBuilder output = new StringBuilder();
         // later has to check if time is 0
-        output.append(period.getYears()).append("/");
-        output.append(period.getMonths()).append("/");
-        output.append(period.getDays()).append(" ");
+        if(period != null){
+            output.append(period.getYears()).append("/");
+            output.append(period.getMonths()).append("/");
+            output.append(period.getDays()).append(" ");
+        }
 
-        output.append(duration.toHours()).append(":");
-        output.append(duration.toMinutes());
+        if(duration != null){
+            output.append(duration.toHours()).append(":");
+            output.append(duration.toMinutes());
+        }
 
         return output.toString();
 
