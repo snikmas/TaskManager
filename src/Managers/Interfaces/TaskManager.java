@@ -34,6 +34,7 @@ public interface TaskManager {
     // 7.
     public List<Task> history();
     // 8. save tasks
+    public List<Task> getTaskByPriority();
 
 
     // helpers

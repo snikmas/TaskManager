@@ -9,6 +9,7 @@ import Utils.Utils;
 
 import java.util.List;
 
+
 public class Main {
     static FileBackendTaskManager fileManager = Managers.getDefaultFileBackendManager();
     static HistoryManager historyManager = Managers.getDefaultHistory();
@@ -95,19 +96,29 @@ public class Main {
                     System.out.println("Backing to the menu...\n");
                 }
                 case 4 -> {
-                    System.out.println("Get all tasks randomly or sort it by prioritized tasks?");
+                    System.out.println("Get all tasks randomly or sort it by prioritized tasks?\n" +
+                            "1. Just List\n" +
+                            "2. Sorted List");
                     int userChoice = Utils.getInput(2, false);
                     // get all tasks; 2 - > by priority
-                    if (userChoice == 1)
+                    if (userChoice == 1){
                         System.out.println("All tasks:");
                         List<Task> allTasks = fileManager.getAllTasks();
                         for (Task task : allTasks) {
-                            historyManager.add(task);
+                           Utils.outputTaskInfo(task);
                         }
                         Utils.outputAllTasks(allTasks);
                     } else if(userChoice == 2){
-                    // get priority
+                        // IMPORTANT ! NOW WE USE FILEMANAGER EVERYWHERE. MAYBE WE HAVE PROBLEMS, HUSTON
+                        for(Task curTask : Managers.getDefault().getTaskByPriority()){
+                            Utils.outputTaskInfo(curTask);
+                        }
+                    }
+
+
                 }
+
+
                 case 5 -> {
                     System.out.println("Input Epic's id:");
                     Long taskId = Utils.getLongInput();

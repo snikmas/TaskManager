@@ -6,9 +6,7 @@ import Managers.Interfaces.TaskManager;
 import Tasks.Subtask;
 import Tasks.Task;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 
 import static Utils.Utils.updateProperty;
@@ -266,6 +264,18 @@ public class InMemoryTaskManager implements TaskManager {
         List<Task> allTasks = new ArrayList<>();
         allTasks.addAll(allTypesTasks.values());
         return allTasks;
+    }
+
+    public List<Task> getTaskByPriority(){
+        List<Task> taskList = new ArrayList<>(Managers.fileBackendTaskManager.getAllTypesTasks().values());
+
+        // it should sotrts by reference..
+        // task list is an array of taks; a and b is also tasks. so we can get peroperty by a.time?
+//        List<Task> sortedList = taskList.sort((a, b) -> a.getEndDateTime().compareTo(b.getEndDateTime()));
+
+        return taskList.stream()
+                .sorted(Comparator.comparing(Task::getEndDateTime))
+                .toList();
     }
 
 
