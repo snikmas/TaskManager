@@ -154,46 +154,53 @@ public abstract class Utils {
         return null;
     }
 
-    public static void outputTaskInfo(Task task) {
+    public static String outputTaskInfo(Task task) {
         if (task == null) {
-            return;
+            return null;
         }
-        System.out.println("Task Info:");
-        System.out.println("    TaskId: " + (task.getTaskId() != null ? task.getTaskId() : "Invalid ID"));
-        System.out.println("    Title: " + (task.getTaskTitle() != null ? task.getTaskTitle() : "Invalid Title"));
-        System.out.println("    Type: " + task.getClass().getSimpleName());
-        System.out.println("    Description: " + task.getDescription());
-        System.out.println("    Status: " + task.getStatus());
-        System.out.println("    Start time: " + task.getStartDateTime());
-        System.out.println("    Duration: " + formatDurationPeriod(task.getDuration(), task.getPeriod()));
-        System.out.println("    End time: " + task.getEndDateTime());
+        StringBuilder fullString = new StringBuilder("\nTask Info:");
+        fullString.append("\n    TaskId: ").append(task.getTaskId() != null ? task.getTaskId() : "Invalid ID");
+        fullString.append("\n    Title: ").append(task.getTaskTitle() != null ? task.getTaskTitle() : "Invalid Title");
+        fullString.append("\n    Type: ").append(task.getClass().getSimpleName());
+        fullString.append("\n    Description: ").append(task.getDescription());
+        fullString.append("\n    Status: ").append(task.getStatus());
+        fullString.append("\n    Start time: ").append(task.getStartDateTime());
+        fullString.append("\n    Duration: ").append(formatDurationPeriod(task.getDuration(), task.getPeriod()));
+        fullString.append("\n    End time: ").append(task.getEndDateTime());
 
         if (task instanceof Epic) {
             List<Subtask> subtasks = ((Epic) task).getSubtaskList();
-            System.out.println("    Subtasks:");
+            fullString.append("\n    Subtasks:");
             if (subtasks.isEmpty()) {
-                System.out.println("        [No subtasks]");
+                fullString.append("\n        [No subtasks]");
             } else {
                 int counter = 1;
                 for (Subtask subtask : subtasks) {
-                    System.out.println("        " + counter + ". " + subtask.getTaskTitle());
-                    System.out.println("            Description: " + subtask.getDescription());
-                    System.out.println("            Status: " + subtask.getStatus());
-                    System.out.println("            Start Time: " + formatDateTime(subtask.getStartDateTime()));
-                    System.out.println("            Duration:" + formatDurationPeriod(subtask.getDuration(), subtask.getPeriod()));
-                    System.out.println("            End Time: " + formatDateTime(subtask.getEndDateTime()));
+                    fullString.append("\n        ").append(counter).append(". ").append(subtask.getTaskTitle());
+                    fullString.append("\n            Description: ").append(subtask.getDescription());
+                    fullString.append("\n            Status: ").append(subtask.getStatus());
+                    fullString.append("\n            Start Time: ").append(formatDateTime(subtask.getStartDateTime()));
+                    fullString.append("\n            Duration:").append(formatDurationPeriod(subtask.getDuration(), subtask.getPeriod()));
+                    fullString.append("\n            End Time: ").append(formatDateTime(subtask.getEndDateTime()));
                     counter++;
                 }
             }
         } else if (task instanceof Subtask) {
-            System.out.println("    Belongs to: " + ((Subtask) task).getParentId());
+            fullString.append("\n    Belongs to: ").append(((Subtask) task).getParentId());
         }
+        // for output
+//        System.out.println(fullString.toString());
+
+        // for servers
+        return fullString.toString();
     }
 
-    public static void outputAllTasks(List<Task> allTasks) {
+    public static String outputAllTasks(List<Task> allTasks) {
+        StringBuilder string = new StringBuilder();
         if (allTasks.isEmpty()) {
             System.out.println("No tasks!.");
-            return;
+            string.append("No tasks!");
+            return string.toString();
         }
         int counter = 1;
         for (Task task : allTasks) {
@@ -201,10 +208,13 @@ public abstract class Utils {
                 continue;
             }
             System.out.println(counter + ". ");
+            string.append(counter).append(". ").append(outputTaskInfo(task)).append("\n");
             outputTaskInfo(task);
             System.out.println();
             counter++;
         }
+
+        return string.toString();
     }
 
     public static void outputAllSubtasks(List<Subtask> allTasks){

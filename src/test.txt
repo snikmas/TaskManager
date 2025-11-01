@@ -1,0 +1,68 @@
+package Managers;
+
+import Tasks.Task;
+import Utils.Utils;
+import com.google.gson.Gson;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
+
+public class HttpTaskServer {
+
+    HttpServer httpServer;
+
+    public void runServer() {
+        try {
+            httpServer = HttpServer.create(new InetSocketAddress(8080), 0);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        httpServer.createContext("/", new HomePageHandler());
+        httpServer.createContext("/tasks", new GetAllTasksHandler());
+
+        httpServer.start();
+        System.out.println("✅ Server running on http://localhost:8080/");
+    }
+}
+
+class HomePageHandler implements HttpHandler {
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
+        String response = "Server is running! Visit /tasks to see all tasks.";
+        exchange.sendResponseHeaders(200, response.getBytes().length);
+        try (OutputStream os = exchange.getResponseBody()) {
+            os.write(response.getBytes());
+        }
+    }
+}
+
+class GetAllTasksHandler implements HttpHandler {
+    Gson gson = new Gson();
+
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
+        // Build a list of tasks to return as JSON
+        List<Object> taskInfos = new ArrayList<>();
+        for (Task task : Managers.fileBackendTaskManager.getAllTypesTasks().values()) {
+            taskInfos.add(Utils.outputTaskInfo(task));
+        }
+
+        String jsonString = gson.toJson(taskInfos);
+
+        exchange.getResponseHeaders().set("Content-Type", "application/json");
+        exchange.sendResponseHeaders(200, jsonString.getBytes().length);
+
+        try (OutputStream os = exchange.getResponseBody()) {
+            os.write(jsonString.getBytes());
+        }
+
+        System.out.println("✅ Served /tasks request: " + jsonString);
+    }
+}

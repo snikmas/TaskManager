@@ -15,6 +15,7 @@ public class Main {
     static HistoryManager historyManager = Managers.getDefaultHistory();
 
     public static void main(String[] args) {
+        Managers.getTaskServer().runServer();
         fileManager.load();
         int input = -1;
         System.out.println("Hi, how are you today?");

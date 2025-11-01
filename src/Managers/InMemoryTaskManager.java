@@ -269,9 +269,6 @@ public class InMemoryTaskManager implements TaskManager {
     public List<Task> getTaskByPriority(){
         List<Task> taskList = new ArrayList<>(Managers.fileBackendTaskManager.getAllTypesTasks().values());
 
-        // it should sotrts by reference..
-        // task list is an array of taks; a and b is also tasks. so we can get peroperty by a.time?
-//        List<Task> sortedList = taskList.sort((a, b) -> a.getEndDateTime().compareTo(b.getEndDateTime()));
 
         return taskList.stream()
                 .sorted(Comparator.comparing(Task::getEndDateTime))
