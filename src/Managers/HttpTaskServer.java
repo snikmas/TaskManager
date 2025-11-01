@@ -1,5 +1,7 @@
 package Managers;
 
+import Tasks.Epic;
+import Tasks.Subtask;
 import Tasks.Task;
 import Utils.Utils;
 import com.google.gson.Gson;
@@ -14,6 +16,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,15 +68,28 @@ class handleMenu implements  HttpHandler{
 
         // /tasks or /tasks/123
         String[] pathParts = path.split("/");
-        String response;
+        String response = "";
 
         Long taskId = -1L;
 
         try {
+            // get if there're only one task
             if(method.equalsIgnoreCase("GET")){
                 if(pathParts.length == 2){
                     response = Utils.outputAllTasks(new ArrayList<>(Managers.getDefault().getAllTypesTasks().values()));
+                }else if(pathParts.length > 2){
+                    String queries = requestURI.getQuery();
+                    if(queries != null){
+                        String pairs[] = queries.split("=");
+                        if(pairs.length > 1){
+                            taskId = Long.parseLong(pairs[1]);
+                        }
+                        response = Utils.outputTaskInfo(Managers.getDefault().getTaskById(taskId));
+                    }
+                } else {
+                    response = "Invalid request!";
                 }
+                httpExchange.sendResponseHeaders(200, response.getBytes(StandardCharsets.UTF_8).length);
             } else if(method.equalsIgnoreCase("DELETE")){
                 if(pathParts.length > 2){
                     String queries = requestURI.getQuery();
@@ -85,22 +101,24 @@ class handleMenu implements  HttpHandler{
                         Managers.getDefault().deleteTaskById(taskId);
                     }
                 }
-            } else if (method.equalsIgnoreCase("UPDATE")){
+            } else if (method.equalsIgnoreCase("POST")){
                 String typeTask = pathParts[2];
                 // new update delete? here only new and update
                 String action = pathParts[3];
                 if(action.equals("new")){
+                    Task task = null;
                     switch (typeTask){
                         case "task" -> {
-
+                            task = new Task();
                         }
                         case "subtask" -> {
-
+                            task = new Subtask();
                         }
                         case "epic" -> {
-
+                            task = new Epic();
                         }
                     }
+                    Managers.getDefault().createTask(task);
                 } else if(action.equals("update")){
                     String queries = requestURI.getQuery();
                     System.out.println(queries);
