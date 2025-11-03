@@ -14,7 +14,7 @@ public class Main {
     static FileBackendTaskManager fileManager = Managers.getDefaultFileBackendManager();
     static HistoryManager historyManager = Managers.getDefaultHistory();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         Managers.getTaskServer().runServer();
         fileManager.load();
         int input = -1;

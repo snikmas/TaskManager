@@ -5,10 +5,10 @@ import Tasks.Subtask;
 import Tasks.Task;
 import Utils.Utils;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -18,18 +18,18 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class HttpTaskServer {
 
     HttpServer httpServer;
 
-    public void runServer(){
-        try {
-            httpServer = HttpServer.create(new InetSocketAddress(8080), 0);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+
+    public void runServer() throws Exception{
+
+        httpServer = HttpServer.create(new InetSocketAddress(8080), 0);
+
 
         // here: tasks/<resourses>, like task
         // tasks/task/create OR delete OR change? - for tasks GET
@@ -41,10 +41,12 @@ public class HttpTaskServer {
         // parameters put to the body iin json format, in the request use req?taskId
 
         httpServer.createContext("/tasks", new handleMenu());
-
-
-
         httpServer.start();
+//        URI uri1 = URI.create("https://localhost:8080/tasks/task"); // ye.. no need
+
+        // get?
+        // get tasks
+        // get by id
     }
 }
 
@@ -57,92 +59,96 @@ public class HttpTaskServer {
 // use httpexchange to send reponse headres + output stream write to send a body
 class handleMenu implements  HttpHandler{
     @Override
-    public void handle(HttpExchange httpExchange){
+    // tasks
+    // here: servers thing
+    public void handle(HttpExchange httpExchange) throws IOException {
 
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        Gson gson = gsonBuilder.create();
+        // GET tasks/task/
+        // GET tasks/task/?id=
+        // GET tasks/subtask/epic?id=
+        // GET tasks/tasks/history
+        // GET tasks/ - by priority
+        // POST tasks/task/body:{task}
+        // DELETE  tasks/task/?id
+        // DELETE  tasks/task/
+        // tasks/subtasks or tasks/epic
+
+
+        URI uri = httpExchange.getRequestURI();
         String method = httpExchange.getRequestMethod();
-        URI requestURI = httpExchange.getRequestURI();
-        String path = requestURI.getPath();
-
-        // log request
-        System.out.println(method + " " + path);
-
-        // /tasks or /tasks/123
+        String path = uri.getPath(); // path go there without any parameters
+        String params = uri.getQuery();
         String[] pathParts = path.split("/");
         String response = "";
 
-        Long taskId = -1L;
-
-        try {
-            // get if there're only one task
-            if(method.equalsIgnoreCase("GET")){
-                if(pathParts.length == 2){
-                    response = Utils.outputAllTasks(new ArrayList<>(Managers.getDefault().getAllTypesTasks().values()));
-                }else if(pathParts.length > 2){
-                    String queries = requestURI.getQuery();
-                    if(queries != null){
-                        String pairs[] = queries.split("=");
-                        if(pairs.length > 1){
-                            taskId = Long.parseLong(pairs[1]);
-                        }
-                        response = Utils.outputTaskInfo(Managers.getDefault().getTaskById(taskId));
-                    }
-                } else {
-                    response = "Invalid request!";
-                }
-                httpExchange.sendResponseHeaders(200, response.getBytes(StandardCharsets.UTF_8).length);
-            } else if(method.equalsIgnoreCase("DELETE")){
-                if(pathParts.length > 2){
-                    String queries = requestURI.getQuery();
-                    if(queries != null){
-                        String[] pairs = queries.split("=");
-                        if(pairs.length > 1){
-                            taskId = Long.parseLong(pairs[1]);
-                        }
-                        Managers.getDefault().deleteTaskById(taskId);
-                    }
-                }
-            } else if (method.equalsIgnoreCase("POST")){
-                String typeTask = pathParts[2];
-                // new update delete? here only new and update
-                String action = pathParts[3];
-                if(action.equals("new")){
-                    Task task = null;
-                    switch (typeTask){
-                        case "task" -> {
-                            task = new Task();
-                        }
-                        case "subtask" -> {
-                            task = new Subtask();
-                        }
-                        case "epic" -> {
-                            task = new Epic();
-                        }
-                    }
-                    Managers.getDefault().createTask(task);
-                } else if(action.equals("update")){
-                    String queries = requestURI.getQuery();
-                    System.out.println(queries);
-                    if(queries != null){
-                        String[] pairs = queries.split("=");
-                        if(pairs.length > 1){
-                            taskId = Long.parseLong(pairs[1]);
-                        }
-                    }
-                    Task task = Managers.getDefault().getTaskById(taskId);
-                    Managers.getDefault().updateTask(task, taskId);
-                }
+        // 1st case: if params == 0'
+        if(params == null) {
+            // tasks handler, shows tasks
+            StringBuilder output = new StringBuilder();
+            List<Task> tasks = Managers.getDefault().getAllTasks();
+            for(Task task : tasks){
+                output.append(gson.toJson(task)).append('\n');
             }
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
 
 
+        switch(method){
+            case "GET" -> {
+                httpExchange.sendResponseHeaders(200, 0);
 
-        // get the second one /subtask-?
-        // with this thing, get method. get/post etc
-        // tasks/task/new?id=1
-        // tasks/task/update?id=1
-        // tasks/task/deletee?id=1
+                if(params != null){
+                    System.out.println("params in not null");
+                    return;
+                }
+
+                if(pathParts.length == 2){
+                    // shows by priority
+                    // it returns a list.. list to.. json?
+
+                    System.out.println("working");
+                    List<Task> list = Managers.getDefault().getTaskByPriority();
+                    String jsonList = gson.toJson(list);
+                    byte[] resBytes = jsonList.getBytes(StandardCharsets.UTF_8);
+                    httpExchange.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
+                    httpExchange.sendResponseHeaders(200, resBytes.length);
+                    try(OutputStream os = httpExchange.getResponseBody()){
+                        os.write(resBytes);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                }
+
+                else System.out.println("params is null");
+                System.out.println("path boejcts: " + pathParts.length);
+                System.out.println("path[0]: " + pathParts[0]);
+                System.out.println("path[1]: " + pathParts[1]);
+                System.out.println("path[2]: " + pathParts[2]);
+
+
+                System.out.println(path);
+                String str = "434";
+
+            }
+            case "POST" -> {
+                System.out.println(path);
+
+            }
+            case "DELETE" -> {
+                System.out.println(path);
+            }
+        }
+
+
+        
+
+
+
+
+
+
+
     }
 }
